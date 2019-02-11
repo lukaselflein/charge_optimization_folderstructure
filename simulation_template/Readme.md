@@ -11,4 +11,5 @@ Then, run the mid-level bash script `trajectory_analysis.sh`.
 `snapshot_template`: universal folder structure for fitting charges to snapshot structure
 `{100}ps`: a copy of `snapshot_template` filled with concrete data
 `charge_comparison`: lists and visualizes charges from the different snapshots
-`analyze_snapshots.sh`: runs analysis scripts in subfolders, compares charges
+`analyze_snapshots.sh`: runs analytics scripts in subfolders, compares charges
+`create_snapshots.py`: initialize empty folder structures from template
