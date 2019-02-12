@@ -14,4 +14,5 @@ The folders are organized in four levels:
 
 ### Usage
 Copy the `simulation_template` folder structure, and rename to a specific simulation name, e.g. `simulation-1.0-a`. 
+
 Then, run the simulations, make sure the data is saved in the appropriate location.
