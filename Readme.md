@@ -1,5 +1,5 @@
 # Sarah Folder Structure
-Create a consistent, documented folder structure for charge optimization.
+Create a consistent, documented folder structure for MD charge optimization.
 
 ### Organization
 The folders are organized in four levels:
