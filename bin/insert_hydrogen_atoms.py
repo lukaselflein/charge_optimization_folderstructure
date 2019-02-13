@@ -1,10 +1,11 @@
 """ Change structure with implicit Hydrogen to one with explicitely defined H-atoms.
 Copyright 2019 Simulation Lab
 University of Freiburg
-Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
-Original: Johannes Hörmann <johannes.hoermann@imtek.uni-freiburg.de>
+Author: Johannes Hörmann <johannes.hoermann@imtek.uni-freiburg.de>
+Modified: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 """
 
+import os
 import ase.io
 import sys
 import numpy as np
@@ -19,7 +20,7 @@ def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0
     """
     Inserts explicit hydrogen atoms into ASE structure.
     """ 
-	# make copies of passed structures as not to alter originals:
+    # make copies of passed structures as not to alter originals:
     new_pmd_top = pmd_top.copy(pmd.Structure)
     new_ase_struct = ase_struct.copy()
     # make copied atoms accessible by unchangable indices (standard list)
@@ -60,7 +61,6 @@ def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0
 
             #calculate an orthogonal vector 'dr_ortho' on dr
             #and push the H atoms in dr+dr_ortho and dr-dr_ortho
-            #if one has to add more than two H atoms introduce dr_ortho_2 = dr x dr_ortho
             dr_ortho = np.cross(dr,np.array([1,0,0]))
             if np.linalg.norm(dr_ortho) < 0.1 :   #if dr and (1,0,0) have almost the same direction
                 dr_ortho = np.cross(dr,np.array([0,1,0]))
@@ -86,7 +86,7 @@ def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0
 
                 elif c_step > 15:
                     print('programm needs more than 15 corrector steps for',
-             			  ' H atom {} at atom {}'.format(n_atoms, k))
+                          ' H atom {} at atom {}'.format(n_atoms, k))
                     sys.exit(15)
                     break
 
@@ -101,9 +101,6 @@ def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0
                 trans = np.zeros([n_atoms,3])
                 trans[-1] = new_r_H - r_H
                 new_ase_struct.translate(trans)
-
-            #view(new_ase_struct)
-            #sys.exit()
 
             i = np.append(i,k) # manually update numbered neighbour lists
             j = np.append(j,len(new_ase_struct)-1)
@@ -125,35 +122,48 @@ def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0
             originalAtoms.append(new_H) # add atom to the bottom of "index-stiff" list
     return new_ase_struct, new_pmd_top
 
+def read_input_files(input_dir='../0_initial_structure'):
+    """
+    Search for and read input files (with implicit H-atoms).
+    """
+    files = os.listdir(input_dir)
+    for filename in files:
+        print(filename)
+        if ('snapshot' in filename) and ('.pdb' in filename):
+            ase_struct = ase.io.read(os.path.join(input_dir, filename))
+            pmd_struct = pmd.load_file(os.path.join(input_dir, filename))
+        elif '.top' in filename:
+            pmd_top = gromacs.GromacsTopologyFile(os.path.join(input_dir, filename), 
+                                                      parametrize=False)
+    return ase_struct, pmd_struct, pmd_top
+
 
 def main():
+    """
+    Execute everything.
+    """
+    # Read the united-atoms files extracted from the MD-simulation trajectory
+    ase_struct, pmd_struct, pmd_top = read_input_files()
 
-    # define a dictionary, marking how many H atoms are missing at which
-    # bonding partner explicitly:
+    # define a dictionary, marking how many H atoms are missing at which bonding partner explicitly
     implicitHbondingPartners={'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}
-    # every occurence of these atoms (in sample case 3 times for each residue)
-    # will be processed independently
-
-    ase_struct=ase.io.read('../0_initial_structure/snapshot0.pdb')
-    pmd_struct = pmd.load_file('../0_initial_structure/snapshot0.pdb')
-    pmd_top = gromacs.GromacsTopologyFile('../0_initial_structure/system600.top', parametrize=False)
-
+    
     # throws some warnings on angle types, does not matter for bonding info
     pmd_top.strip(':SOL,CL') # strip water and electrolyte from system
 
     pmd_top.box = pmd_struct.box # Needed because .prmtop contains box info
     pmd_top.positions = pmd_struct.positions
 
-    # placing choice not ideal yet, other tools such as VMD or Avogadro do
-    # not necessarily infer correct bonding for new H-atoms...
-    new_ase_struct, new_pmd_top=insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,1.0)
+    # Insert the explicit hydrogens
+    new_ase_struct, new_pmd_top = insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,1.0)
+
+    # Write output
     new_ase_struct.write('ase_pdbH.pdb')
     new_ase_struct.write('ase_pdbH.traj')
 
-    # hence we can use an explicit topology file to visualize connectivity as "understood" by this tool
+    # Write other output
     new_pmd_top.write_pdb('pmd_pdbH.pdb')
     test_pmd = pmd.load_file('pmd_pdbH.pdb')
-
     new_pmd_top.write_psf('pmd_pdbH.psf') # some topology format, un functionality similar to GROMACS' .top, but readable by VMD
 
 
