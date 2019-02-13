@@ -1,5 +1,5 @@
 # Sarah Folder Structure
-Create a consistent, documented folder structure for MD charge optimization.
+Create a consistent, documented pipline and folder structure for self-consistent MD charge optimizationi.
 
 ### Organization
 The folders are organized in four levels:
@@ -9,7 +9,7 @@ The folders are organized in four levels:
 4. Current directory: Simulating and fitting charges is iteratated until charges converge. This is the highest level. Subfolders correspond to different simulations (3).
 
 ### Content
-`bin`: bash and python scripts for fitting, conversion, extracting, and visualization
+`bin`: Bash and python scripts for fitting, conversion, extracting, and visualization
 `simulation_template`: The full template simulation folder structure.
 
 ### Usage
