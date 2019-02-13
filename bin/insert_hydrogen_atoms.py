@@ -1,26 +1,25 @@
-## jlh 2018/02/13
-# takes dictionary of united atoms and implicit hydrogen number,
-# adding a certain number of explicit hydrogens around these.
-# Needs and returns corresponding ASE and ParmEd representations of the system
+""" Change structure with implicit Hydrogen to one with explicitely defined H-atoms.
+Copyright 2019 Simulation Lab
+University of Freiburg
+Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
+Original: Johannes Hörmann <johannes.hoermann@imtek.uni-freiburg.de>
+"""
 
-# TODO: think about the case when one has to add more than two H-atoms
-
-
-import numpy as np
-import matscipy as msp
-from matscipy.neighbours import neighbour_list
-from ase.data import atomic_numbers
 import ase.io
-from ase.neighborlist import NeighborList
-from ase.visualize import view
-import parmed as pmd
-from parmed import gromacs
-import nglview as nv
 import sys
-#gromacs.GROMACS_TOPDIR = "/home/jotelha/gromacs/2016.4/share/gromacs/top"
+import numpy as np
+import parmed as pmd
 
-def insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,bond_length=1.0):
-    # make copies of passed structures as not to alter originals:
+from ase.data import atomic_numbers
+from ase.neighborlist import NeighborList
+from matscipy.neighbours import neighbour_list
+from parmed import gromacs
+
+def insertHbyList(ase_struct, pmd_top, implicitHbondingPartners, bond_length=1.0):
+    """
+    Inserts explicit hydrogen atoms into ASE structure.
+    """ 
+	# make copies of passed structures as not to alter originals:
     new_pmd_top = pmd_top.copy(pmd.Structure)
     new_ase_struct = ase_struct.copy()
     # make copied atoms accessible by unchangable indices (standard list)
@@ -86,21 +85,16 @@ def insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,bond_length=1.0):
                     break
 
                 elif c_step > 15:
-                    print('programm needs more than 15 corrector steps for H atom {} at atom {}'.format(n_atoms, k))
+                    print('programm needs more than 15 corrector steps for',
+             			  ' H atom {} at atom {}'.format(n_atoms, k))
                     sys.exit(15)
                     break
 
                 print('too close atoms', indices)
                 c_step += 1
                 print('correcter step {} for H {} at atom {}'.format(c_step, n_atoms-1, k))
-                # if indices not empty -> the atom(-1)=r_H is to close together
-                # with atom a_close=indices[0], it is a H-atom belonging to atom 'k'=r_k .
-                #correctorstep: corr_step = (r_H-a_close)/|(r_H-a_close)|
-                #corrected_pos: corr_pos = ((r_H-r_k) + corr_step)/|((r_H-r_k) + corr_step)|
-                #new H position: new_r_H = r_k + corr_pos
                 r_H, r_k, a_close = np.take(new_ase_struct.get_positions(),[-1,k,indices[0]], axis=0)
-                #print('r_H, r_k, a_close', r_H, r_k, a_close)
-                corr_step = (r_H-a_close)/np.linalg.norm((r_H-a_close)) #maybe introduce here a skaling Faktor s=0.3 or somthing like that to make tiny corrections and don't overshoot.
+                corr_step = (r_H-a_close)/np.linalg.norm((r_H-a_close)) 
                 corr_pos = ((r_H-r_k) + corr_step)/np.linalg.norm((r_H-r_k) + corr_step)
                 new_r_H = r_k + bond_length * corr_pos
                 #correct the H position to new_r_H in new_ase_struct
@@ -120,10 +114,10 @@ def insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,bond_length=1.0):
             nameH = '{}{}'.format(h+1,bondingPartner.name) # atom needs a unique name
             print('Adding H-atom {} at position [ {}, {}, {} ]'.format(nameH,r0[0], r0[1], r0[2]))
             new_H = pmd.Atom(name=nameH, type='H', atomic_number=1)
-            new_H.xx = r0[0] # ParmEd documentation not very helpful, did not find any more compact assignment
+            new_H.xx = r0[0] 
             new_H.xy = r0[1]
             new_H.xz = r0[2]
-            # do not understand ParmEd that well, apparently we need the Bond object in order to update topology
+            # Apparently we need the Bond object in order to update topology
             new_Bond = pmd.Bond(bondingPartner,new_H)
             new_H.bond_to(bondingPartner) # not sure, whether this is necessary
             new_pmd_top.bonds.append(new_Bond)
@@ -132,18 +126,18 @@ def insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,bond_length=1.0):
     return new_ase_struct, new_pmd_top
 
 
-# define a dictionary, marking how many H atoms are missing at which
-# bonding partner explicitly:
-implicitHbondingPartners={'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}
-# every occurence of these atoms (in sample case 3 times for each residue)
-# will be processed independently
+def main():
 
-#loop over all MD steps
-for i in range(600,601):
-    print('test i is {}, or '.format(i), i)
-    ase_struct=ase.io.read('system{}.pdb'.format(i))
-    pmd_struct = pmd.load_file('system{}.pdb'.format(i))
-    pmd_top = gromacs.GromacsTopologyFile('system{}.top'.format(i),parametrize=False)
+    # define a dictionary, marking how many H atoms are missing at which
+    # bonding partner explicitly:
+    implicitHbondingPartners={'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}
+    # every occurence of these atoms (in sample case 3 times for each residue)
+    # will be processed independently
+
+    ase_struct=ase.io.read('../0_initial_structure/snapshot0.pdb')
+    pmd_struct = pmd.load_file('../0_initial_structure/snapshot0.pdb')
+    pmd_top = gromacs.GromacsTopologyFile('../0_initial_structure/system600.top', parametrize=False)
+
     # throws some warnings on angle types, does not matter for bonding info
     pmd_top.strip(':SOL,CL') # strip water and electrolyte from system
 
@@ -153,16 +147,15 @@ for i in range(600,601):
     # placing choice not ideal yet, other tools such as VMD or Avogadro do
     # not necessarily infer correct bonding for new H-atoms...
     new_ase_struct, new_pmd_top=insertHbyList(ase_struct,pmd_top,implicitHbondingPartners,1.0)
-    new_ase_struct.write('ase_pdbH_{}.pdb'.format(i))
-    new_ase_struct.write('ase_pdbH_{}.traj'.format(i))
+    new_ase_struct.write('ase_pdbH.pdb')
+    new_ase_struct.write('ase_pdbH.traj')
 
-    #visualize the atom structure in ase-gui
-    #view(new_ase_struct)
+    # hence we can use an explicit topology file to visualize connectivity as "understood" by this tool
+    new_pmd_top.write_pdb('pmd_pdbH.pdb')
+    test_pmd = pmd.load_file('pmd_pdbH.pdb')
 
-    # ... hence we can use an explicit topology file to visualize connectivity as "understood" by this tool
-    new_pmd_top.write_pdb('pmd_pdbH_{}.pdb'.format(i))
-    test_pmd = pmd.load_file('pmd_pdbH_{}.pdb'.format(i))
+    new_pmd_top.write_psf('pmd_pdbH.psf') # some topology format, un functionality similar to GROMACS' .top, but readable by VMD
 
-    new_pmd_top.write_psf('pmd_pdbH_{}.psf'.format(i)) # some topology format, un functionality similar to GROMACS' .top, but readable by VMD
-    # in VMD, first load .psf, then .pdb to suppress (wrong/unwanted) connectivity inference from distances and display
-    # bonds as explicitly defined.
+
+if __name__ == '__main__':
+    main()

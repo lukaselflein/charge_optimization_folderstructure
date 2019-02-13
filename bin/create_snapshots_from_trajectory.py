@@ -85,8 +85,15 @@ def extract_snapshots(trajectory_file, tpr_file, working_dir, start_time, end_ti
 										start=start_time,
 										end=end_time,
 										dt=delta_time)
-	# Run in shell mode
-	subprocess.check_call([command], shell=True)
+
+	print('\nRunning GROMACS trjconv, please wait ...')
+	# Uncomment this to view GROMACS' output
+	# subprocess.check_call([command], shell=True)
+
+	# This call catches the stderr output without printing it
+	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	result = pipe.communicate()
+	print('GROMACS finished successfully.')
 
 	# Check if output exists, then move to respective folders
 	index = 0  # This is for GROMACS naming convention in [0..n]
@@ -129,7 +136,7 @@ def main():
 			  working_dir=working_dir, start_time=start_time, delta_time=delta_time, 
 			  end_time=end_time)
 
-	print('Done.')
+	print('\nAll done.')
 
 if __name__ == '__main__':
 	main()
