@@ -9,40 +9,6 @@ import argparse
 import os
 import subprocess
 
-def cmd_parser():
-	"""
-	Read Command line arguments
-	"""
-	parser = argparse.ArgumentParser(prog='',
-					 description='Create snapshots from trajectory in folder structure')
-	parser.add_argument('-wd',
-        help='The top-level working directory containing the snapshot subfolders',
-	default='./', metavar='./')
-
-	parser.add_argument('-xtc',
-        help='The path to the trajectory file',
-	default='./example.xtc', metavar='./traject.xtc')
-
-	parser.add_argument('-tpr',
-        help='The path to the topolgy file',
-	default='./example.tpr', metavar='./topo.tpr')
-
-	parser.add_argument('-e', metavar='10',
-        help='The timestamp of the last snapshot', 
-	default='20', type=int)
-
-	parser.add_argument('-s', metavar='100',
-        help='The timestamp of the first snapshot',
-	default='0', type=int)
-
-	parser.add_argument('-d', metavar='100',
-        help='The difference in time between snapshots',
-	default='10', type=int)
-
-	args = parser.parse_args()
-
-	return args.wd, args.e, args.s, args.d, args.xtc, args.tpr
-
 def create_directories(working_dir, timesteps):
 	"""
 	Set up directories for each timestep
@@ -61,7 +27,8 @@ def create_directories(working_dir, timesteps):
 
 	return path
 
-def extract_snapshots(trajectory_file, tpr_file, working_dir, start_time, end_time, delta_time):
+def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir, 
+                      start_time, end_time, delta_time):
 	"""
 	Extract snapshots via GROMACS and move them to their snapshot-subfolders.
 
@@ -115,10 +82,52 @@ def extract_snapshots(trajectory_file, tpr_file, working_dir, start_time, end_ti
 
 		# Move snapshot to its own folder
 		shutil.move(snapshot_path, os.path.join(target_folder, snapshot_name))
+
+		# Copy the .top to the subfolders
+		top_name = os.path.split(top_file)[-1]
+		shutil.copyfile(top_file, os.path.join(target_folder, top_name))
 		
 		index += 1  # for Gromacs naming
 	
 	print('Snapshots successfully extracted.')
+
+def cmd_parser():
+	"""
+	Read Command line arguments
+	"""
+	parser = argparse.ArgumentParser(prog='',
+					 description='Create snapshots from trajectory in folder structure')
+	parser.add_argument('-wd',
+        help='The top-level working directory containing the snapshot subfolders',
+	default='./', metavar='./')
+
+	parser.add_argument('-xtc',
+        help='The path to the trajectory file',
+	default='./example.xtc', metavar='./traject.xtc')
+
+	parser.add_argument('-tpr',
+        help='The path to the topolgy file',
+	default='./example.tpr', metavar='./topo.tpr')
+
+	parser.add_argument('-top',
+        help='The path to the .top topolgy file',
+	default='./example.top', metavar='./topo.top')
+
+	parser.add_argument('-e', metavar='10',
+        help='The timestamp of the last snapshot', 
+	default='20', type=int)
+
+	parser.add_argument('-s', metavar='100',
+        help='The timestamp of the first snapshot',
+	default='0', type=int)
+
+	parser.add_argument('-d', metavar='100',
+        help='The difference in time between snapshots',
+	default='10', type=int)
+
+	args = parser.parse_args()
+
+	return args.wd, args.e, args.s, args.d, args.xtc, args.tpr, args.top
 
 def main():
 	"""
@@ -126,15 +135,16 @@ def main():
 	"""
 
 	# Read Command-Line Arguments
-	working_dir, end_time, start_time, delta_time, trajectory_file, tpr_file = cmd_parser()
+	working_dir, end_time, start_time, delta_time, trajectory_file, tpr_file, top_file = cmd_parser()
 
 	# Calculate the corresponding timesteps
 	timesteps = range(start_time, end_time + delta_time, delta_time)
 	print('Creating directories for timesteps {}'.format(timesteps))
 	create_directories(working_dir, timesteps)
-	extract_snapshots(trajectory_file=trajectory_file, tpr_file=tpr_file, 
+	extract_snapshots(trajectory_file=trajectory_file, tpr_file=tpr_file, top_file=top_file,
 			  working_dir=working_dir, start_time=start_time, delta_time=delta_time, 
 			  end_time=end_time)
+
 
 	print('\nAll done.')
 
