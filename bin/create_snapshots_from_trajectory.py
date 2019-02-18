@@ -62,7 +62,6 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 	result = pipe.communicate()
 	with open('gmx_trjconv.log', 'wb') as logfile:
 		for line in result:
-			print(str(line))
 			logfile.write(line)
 	print('GROMACS finished successfully.')
 
@@ -107,15 +106,15 @@ def cmd_parser():
 
 	parser.add_argument('-xtc',
         help='The path to the trajectory file',
-	default='./example.xtc', metavar='./traject.xtc')
+	default='./simulation/example.xtc', metavar='./traject.xtc')
 
 	parser.add_argument('-tpr',
         help='The path to the topolgy file',
-	default='./example.tpr', metavar='./topo.tpr')
+	default='./simulation/example.tpr', metavar='./topo.tpr')
 
 	parser.add_argument('-top',
         help='The path to the .top topolgy file',
-	default='./example.top', metavar='./topo.top')
+	default='./simulation/example.top', metavar='./topo.top')
 
 	parser.add_argument('-e', metavar='10',
         help='The timestamp of the last snapshot', 

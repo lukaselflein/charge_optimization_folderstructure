@@ -1,1 +1,0 @@
-../bin/analyze_snapshots.sh

@@ -6,7 +6,7 @@
 #MSUB -M elfleinl@cs.uni-freiburg.de
 #MSUB -l nodes=4:ppn=20
 #MSUB -l pmem=5500mb       # not more than 6GB
-#MSUB -l walltime=04:00:00  # needs approx 265min CPU time, eq 1h Wall time
+#MSUB -l walltime=04:00:00:00  # needs approx 265min CPU time, eq 1h Wall time
 
 echo " "
 echo "### Setting up shell environment ..."

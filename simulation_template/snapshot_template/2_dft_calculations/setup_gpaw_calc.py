@@ -1,0 +1,1 @@
+../../../bin/setup_gpaw_calc.py
