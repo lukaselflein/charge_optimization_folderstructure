@@ -60,6 +60,10 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 	# This call catches the stderr output without printing it
 	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	result = pipe.communicate()
+	with open('gmx_trjconv.log', 'wb') as logfile:
+		for line in result:
+			print(str(line))
+			logfile.write(line)
 	print('GROMACS finished successfully.')
 
 	# Check if output exists, then move to respective folders
