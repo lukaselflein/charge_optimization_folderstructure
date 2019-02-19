@@ -1,1 +1,0 @@
-../bin/loop_convert_UA_AA.py

@@ -67,7 +67,7 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 
 	# Check if output exists, then move to respective folders
 	index = 0  # This is for GROMACS naming convention in [0..n]
-	for time in range(start_time, end_time + delta_time, delta_time):
+	for time in range(start_time, end_time + 1, delta_time):
 	
 		# Define names
 		snapshot_name = 'snapshot' + str(index) + '.pdb' 
@@ -118,15 +118,15 @@ def cmd_parser():
 
 	parser.add_argument('-e', metavar='10',
         help='The timestamp of the last snapshot', 
-	default='20', type=int)
+	default='300', type=int)
 
 	parser.add_argument('-s', metavar='100',
         help='The timestamp of the first snapshot',
-	default='0', type=int)
+	default='100', type=int)
 
 	parser.add_argument('-d', metavar='100',
         help='The difference in time between snapshots',
-	default='10', type=int)
+	default='100', type=int)
 
 	args = parser.parse_args()
 
