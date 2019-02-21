@@ -20,4 +20,7 @@ dyn = BFGSLineSearch(struc, trajectory='molecule.traj',
                      restart='bfgs_ls.pckl', logfile='BFGSLinSearch.log')
 dyn.run(fmax=0.05)
 
+# We can actually just write out a restart file
+gpw_file = 'system.gpw'
+calc.write(gpw_file, mode='all')
 
