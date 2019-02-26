@@ -62,4 +62,4 @@ set -e
 
 cd ${MOAB_SUBMITDIR}
 
-mpirun -n $MOAB_PROCCOUNT gpaw-python setup_gpaw_calc.py
+mpirun -n $MOAB_PROCCOUNT gpaw-python gpaw_optimize_and_esp.py 

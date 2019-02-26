@@ -54,16 +54,20 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 										dt=delta_time)
 
 	print('\nRunning GROMACS trjconv, please wait ...')
-	# Uncomment this to view GROMACS' output
-	# subprocess.check_call([command], shell=True)
 
-	# This call catches the stderr output without printing it
-	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	result = pipe.communicate()
-	with open('gmx_trjconv.log', 'wb') as logfile:
-		for line in result:
-			logfile.write(line)
-	print('GROMACS finished successfully.')
+	verbose = True
+	if verbose == True:
+		subprocess.check_call([command], shell=True)
+
+	else:
+		# This call catches the stderr output without printing it
+		pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, 
+					stderr=subprocess.PIPE)
+		result = pipe.communicate()
+		with open('gmx_trjconv.log', 'wb') as logfile:
+			for line in result:
+				logfile.write(line)
+		print('GROMACS finished successfully.')
 
 	# Check if output exists, then move to respective folders
 	index = 0  # This is for GROMACS naming convention in [0..n]
@@ -116,9 +120,9 @@ def cmd_parser():
         help='The path to the .top topolgy file',
 	default='./simulation/example.top', metavar='./topo.top')
 
-	parser.add_argument('-e', metavar='10',
+	parser.add_argument('-e', metavar='1000',
         help='The timestamp of the last snapshot', 
-	default='300', type=int)
+	default='1000', type=int)
 
 	parser.add_argument('-s', metavar='100',
         help='The timestamp of the first snapshot',
