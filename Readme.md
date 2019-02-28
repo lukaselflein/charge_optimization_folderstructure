@@ -1,5 +1,17 @@
 # Sarah Folder Structure
-Create a consistent, documented pipline and folder structure for self-consistent MD charge optimizationi.
+Create a consistent, documented pipline and folder structure for self-consistent MD charge optimization.
+
+### Prerequisites
+Make sure you have the smamp module:
+1. Local installation
+pip install --user smamp
+
+2. Module installation
+Alternatively, you can use the make_module.sh script to install & load it as a module.
+
+3. Use version from Lukas
+module use /home/fr/fr_fr/fr_le1019/modulefiles
+module load smamp
 
 ### Organization
 The folders are organized in four levels:

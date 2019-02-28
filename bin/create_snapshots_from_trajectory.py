@@ -22,7 +22,7 @@ def create_directories(working_dir, timesteps):
 			shutil.rmtree(path)
 
 		# Copy the template
-		shutil.copytree(working_dir + 'snapshot_template', path, symlinks=True)
+		shutil.copytree(working_dir + '.template_snapshot', path, symlinks=True)
 		print('{} initialized.'.format(path))
 
 	return path
@@ -57,7 +57,11 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 
 	verbose = True
 	if verbose == True:
-		subprocess.check_call([command], shell=True)
+		try:
+			subprocess.check_call([command], shell=True)
+		except:
+			raise RuntimeError('I got an error from: \n "{}"\
+					   \n Did you load GROMACS?'.format(command))
 
 	else:
 		# This call catches the stderr output without printing it
@@ -88,7 +92,7 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 			raise RuntimeError('Folder {} is missing'.format(target_folder))
 
 		# Move snapshot to its own folder
-		shutil.move(snapshot_path, os.path.join(target_folder, snapshot_name))
+		shutil.move(snapshot_path, os.path.join(target_folder, 'snapshot.pdb'))
 
 		# Copy the .top to the subfolders
 		top_name = os.path.split(top_file)[-1]

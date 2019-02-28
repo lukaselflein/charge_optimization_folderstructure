@@ -6,18 +6,7 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 
 import os
 import subprocess
-
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
+from smamp.tools import cd
 
 def check_existence(subdir):
 	"""
@@ -27,10 +16,11 @@ def check_existence(subdir):
 		# Submission files should be here
 		print([f for s, d, f in os.walk('.')])
 		neccessary_files = ['../1_all_atom_structure/ase_pdbH.traj']
-		neccessary_files += ['setup_gpaw_calc.py', 'submit_gpaw.sh']
+		neccessary_files += ['gpaw_optimize_and_esp.py', 'submit_gpaw.sh']
 		for f in neccessary_files:
 			if not (os.path.islink(f) or os.path.isfile(f)):
 				warning = 'File not found: {}'.format(f)
+				print(warning)
 				return warning
 	return None
 
@@ -38,8 +28,7 @@ def submit(subdir):
 	"""
 	Submit the job description to the cluster queue.
 	"""
-	kwargs = {'stderr': subprocess.STDOUT, 'shell': True,
-		  'timeout': 60}
+	kwargs = {'stderr': subprocess.STDOUT, 'shell': True}
 	output = subprocess.check_output('msub submit_gpaw.sh', **kwargs)
 	print('Job submitted, queue response: {}'.format(output.decode('ascii')))
 
@@ -70,7 +59,7 @@ def main():
 			# If they don't exist, log this and move on
 			if warning:
 				with open('submissions.log', 'a') as logfile:
-					logfile.write(warning)
+					logfile.write(warning + '\n')
 				# raise Warning(warning)
 				continue
 
