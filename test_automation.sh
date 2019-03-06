@@ -11,19 +11,8 @@ module load smamp
 
 # Convert UA to AA
 python loop_convert_UA_to_AA.py 
-# Output: ase_pdbH.traj, ase_pdbH.pdb, pmd_pdbH.pdb
+# Output: ase_pdbH.traj, (ase_pdbH.pdb, pmd_pdbH.pdb)
 
-# Submit gpaw optimization, ESP & Rho job
+# Submit gpaw optimization, calc Electrostatic potential and density
 python loop_submit_gpaw.sh
-# Output: esp.cube, rho.cube
-
-# Convert AA to UA
-module purge
-module load numlib/python_scipy/0.19.2-python_numpy-1.11.2-python-2.7.12
-module load gromacs
-module load smamp
-python loop_convert_AA_to_UA.py
-# python aa2ua_cube.py ../0_initial_structure/snapshot.pdb  ../0_initial_structure/example.top  ../2_dft_calculations/esp.cube esp_ua.cube 2>&1 > esp_conversion.log
-# python aa2ua_cube.py ../0_initial_structure/snapshot.pdb  ../0_initial_structure/example.top  ../2_dft_calculations/rho.cube rho_ua.cube  2>&1 > rho_conversion.log
-# Output: esp_ua.cube, rho_ua.cube
-
+# Output: esp.cube, rho.cube, (rho_pseudo.cube)

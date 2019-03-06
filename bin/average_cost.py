@@ -76,10 +76,30 @@ def read_h5(path, verbose=True):
 
 	return A_matrix, B_vector
 
-def collect_matrices():
-	pass
+def collect_matrices(paths):
+	"""
+	Extract A and B from all cost functions.
 
-def average(A_matrices, B_vectors, timesteps):
+	Arguments:
+	paths: list of strings, pointing to the cost function files
+	
+	Returns:
+	A_list: list of A-matrices
+	B_list: list of B-vectors
+	"""
+
+	A_list = []
+	B_list = []
+	for cost_function_path in paths:
+		A_matrix, B_vector = read_h5(cost_function_path)
+		A_list += [A_matrix]
+		B_list += [B_vector]
+
+	assert len(A_list) == len(B_list)
+	return A_list, B_list
+	
+
+def average(A_matrices, B_vectors):
 	""" 
 	Average over cost function matrices.
 
@@ -89,9 +109,8 @@ def average(A_matrices, B_vectors, timesteps):
 	Q = A^-1 B
 
 	Arguments:
-	A_matrices: a dictionary of NxN matrices, indexed with their timestep.
-	B_vectors: a dictionary of vectors with len N, indexed with their timestep.
-	timesteps: a list or tuple of timesteps.
+	A_matrices: a list of NxN matrices
+	B_vectors: a list of vectors with len N
 
 	Returns:
 	A: the average of all A_matrices.
@@ -99,9 +118,8 @@ def average(A_matrices, B_vectors, timesteps):
 	"""
 
 	# Initialize empty
-	time = list(B_vectors.keys())[0]
-	A = A_matrices[time] * 0
-	B = B_vectors[time] * 0
+	A = A_matrices[0] * 0
+	B = B_vectors[0] * 0
 
 	# Average by adding all objects and dividing by their number
 	for timestep in timesteps:
@@ -149,21 +167,23 @@ def main():
 	"""
 	Run the script.
 	"""
-	cost_function_paths = find_cost()	
+	# Find the locations of the cost function files
+	cost_function_paths = find_cost()
+
+	# Extract cost function As and Bs
+	A_list, B_list = collect_matrices(cost_function_paths)
+
+	# Average over all matrices & vectors
+	average_A, average_B = average(A_matrices, B_vectors)
 
 	# keep one HDF5 file as a template for writing into later
-	shutil.copyfile(cost_function_paths[0], './average_cost.h5')
+	shutil.copyfile(cost_function_paths[0], './horton_charges/average_cost.h5')
 
-	
-	# WORK_DIR = '.'
-	# TIMESTEPS = [str(time) for time in range(100, 1100, 100)] 
-	# A_matrices, B_vectors = read_h5(work_dir=WORK_DIR, timesteps=TIMESTEPS)
+	# Export matrices to hdf5 
+	export(average_A, average_B, template_path='./average_cost.h5')
 
-	# print('Calculating averages')
-	# A, B = average(A_matrices, B_vectors, timesteps=TIMESTEPS)
-	
-	# export(A, B)
 	print('Done.')
+
 
 if __name__ == '__main__':
 	main()

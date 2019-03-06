@@ -16,14 +16,15 @@ python create_snapshots_from_trajectory.py -tpr simulation/example.tpr -top simu
 # Convert UA to AA
 module load matscipy/0.2.0
 python loop_convert_UA_to_AA.py
-# Output: ase_pdbH.traj, ase_pdbH.pdb, pmd_pdbH.pdb
+# Output: ase_pdbH.traj, (ase_pdbH.pdb, pmd_pdbH.pdb)
+
 
 # Submit gpaw optimization, ESP & Rho job
 module purge
 module load devel/python/3.6.5
 module load smamp
 python loop_submit.sh
-# Output: esp.cube, rho.cube
+# Output: esp.cube, rho.cube, (rho_pseudo.cube)
 
 # Convert AA to UA
 module purge
@@ -31,19 +32,17 @@ module load gromacs
 module load matscipy/0.2.0
 module load smamp
 python loop_convert_UA_to_AA.py
-# python aa2ua_cube.py ../0_initial_structure/snapshot.pdb  ../0_initial_structure/example.top  ../2_dft_calculations/esp.cube esp_ua.cube 2>&1 > esp_conversion.log
-# python aa2ua_cube.py ../0_initial_structure/snapshot.pdb  ../0_initial_structure/example.top  ../2_dft_calculations/rho.cube rho_ua.cube  2>&1 > rho_conversion.log
 # Output: esp_ua.cube, rho_ua.cube
 
-# Calculate cost function with HORTON
+# Calculate cost functions with HORTON
 module purge
 module load horton/2.1.0b3
 module load smamp
-horton-esp-cost.py ../3_united_atom_structure/esp_ua.cube cost.h5 --wdens ../3_united_atom_structure/rho_ua.cube --pbc 000
+loop_cost_functions.py
 # Output: cost.h5
 
 # Average over cost functions
-average_cost.py # TODO parameters, de-hartcode folderstructure
+average_cost.py 
 
 # Fit ESP cost function
 # Output: test.top, fitted_point_charges.top
@@ -54,5 +53,3 @@ python fitESPconstrained.py ua_cost.h5 snapshot1.pdb example.top atoms_in_charge
 
 # Plot point charges
 #TODO
-ad gromacs/2016.4-gnu-5.2
-
