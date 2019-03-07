@@ -32,7 +32,7 @@ module purge
 module load gromacs
 module load matscipy/0.2.0
 module load smamp
-python loop_convert_UA_to_AA.py
+python loop_convert_AA_to_UA.py
 # Output: esp_ua.cube, rho_ua.cube
 
 # Calculate cost functions with HORTON
