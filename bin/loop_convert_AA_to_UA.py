@@ -36,10 +36,12 @@ def convert(subdir):
 			# Check if at least one file exists
 			if sum([name in f for f in files]) < 2:
 				print(os.getcwd())
+				print(dirs, files)
 				raise RuntimeError('Not enough {} files found.'.format(name))
 			# No more than one file must exists for uniqueness
 			if sum([name in f for f in files]) > 3:
 				print(os.getcwd())
+				print(dirs, files)
 				raise RuntimeError('Too many {} files found.'.format(name))
 
 		for dft_file in ('esp.cube', 'rho.cube'):
@@ -61,10 +63,10 @@ def main():
 	print('Current working dir: {}'.format(topdir))
 	
 	# Crawl the directory structure
-	for subdir, dirs, files in os.walk(topdir):
+	for subdir, dirs, files in sorted(os.walk(topdir)):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folders with AA structures in them

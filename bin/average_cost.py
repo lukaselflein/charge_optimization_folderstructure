@@ -32,7 +32,7 @@ def find_cost(path='.', cost_function_filename='cost.h5'):
 	for subdir, dirs, files in os.walk(path):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folder with cost functions:
@@ -71,7 +71,7 @@ def read_h5(path, verbose=True):
 	# Extract the A matrix
 	A_matrix = np.array(f['cost']['A'])
 	# Extract the B vector
-	B_matrix = np.array(f['cost']['B'])
+	B_vector = np.array(f['cost']['B'])
 
 
 	return A_matrix, B_vector
@@ -122,12 +122,12 @@ def average(A_matrices, B_vectors):
 	B = B_vectors[0] * 0
 
 	# Average by adding all objects and dividing by their number
-	for timestep in timesteps:
-		A += A_matrices[timestep]
-		B += B_vectors[timestep]
+	for index in range(len(A_matrices)):
+		A += A_matrices[index]
+		B += B_vectors[index]
 
 	# Divide
-	number_snapshots = len(timesteps)
+	number_snapshots = len(A_matrices)
 	A /= number_snapshots
 	B /= number_snapshots
 
@@ -161,7 +161,7 @@ def export(A, B, template_path='./average_cost.h5'):
 	assert np.allclose(f['cost/A'][()], A)
 	assert np.allclose(f['cost/B'][()], B)
 
-	print('\nData has been written to {}:'.format(template_path))
+	print('\nData has been written to {}'.format(template_path))
 
 def main():
 	"""
@@ -171,16 +171,16 @@ def main():
 	cost_function_paths = find_cost()
 
 	# Extract cost function As and Bs
-	A_list, B_list = collect_matrices(cost_function_paths)
+	A_matrices, B_vectors = collect_matrices(cost_function_paths)
 
 	# Average over all matrices & vectors
 	average_A, average_B = average(A_matrices, B_vectors)
 
 	# keep one HDF5 file as a template for writing into later
-	shutil.copyfile(cost_function_paths[0], './horton_charges/average_cost.h5')
+	shutil.copyfile(cost_function_paths[0], './horton_charges/costfunction_average.h5')
 
 	# Export matrices to hdf5 
-	export(average_A, average_B, template_path='./average_cost.h5')
+	export(average_A, average_B, template_path='./horton_charges/costfunction_average.h5')
 
 	print('Done.')
 

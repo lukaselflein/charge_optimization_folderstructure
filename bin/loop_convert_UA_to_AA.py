@@ -55,7 +55,7 @@ def main():
 	print('Current working dir: {}'.format(topdir))
 	
 	# Crawl the directory structure
-	for subdir, dirs, files in os.walk(topdir):
+	for subdir, dirs, files in sorted(os.walk(topdir)):
 
 		# Exclude template folders from search
 		if 'template' in subdir:

@@ -130,7 +130,7 @@ def cmd_parser():
 
 	parser.add_argument('-s', metavar='100',
         help='The timestamp of the first snapshot',
-	default='100', type=int)
+	default='200', type=int)
 
 	parser.add_argument('-d', metavar='100',
         help='The difference in time between snapshots',

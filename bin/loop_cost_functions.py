@@ -21,7 +21,7 @@ def calc_cost_function(path):
 	command += esp_file + output_file + density_file + boundary_option
 
 	# Execute the command
-	print("Executing: \n{}".format(command))
+	# print("Executing: \n{}".format(command))
 	# print("In: {}".format(os.getcwd()))
 
 	# output = subprocess.check_output(command, shell=True)
@@ -37,10 +37,10 @@ def main():
 	topdir = '.'
 
 	# Crawl the directory structure
-	for subdir, dirs, files in os.walk(topdir):
+	for subdir, dirs, files in sorted(os.walk(topdir)):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folder to calculate in
@@ -63,6 +63,7 @@ def main():
 				print('Calculating: {}'.format(subdir))
 				with cd(subdir):
 					calc_cost_function(subdir)
+	print('Done.')
 
 if __name__ == '__main__':
 	main()
