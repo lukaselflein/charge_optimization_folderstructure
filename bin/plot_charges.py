@@ -103,99 +103,6 @@ def scatterplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained'):
 	plt.clf()
 	return
 
-def stripplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained'):
-	"""Plot the effect of contraints in stripplot"""
-	long_df = pd.melt(df, id_vars=['atom', 'residue'], value_vars=['q', 'q_unconstrained'])
-	fgrid = sns.stripplot(data=long_df, x='value', y='atom', hue='variable')
-	plt.savefig(os.path.join(out_path, 'stripplot_q_unconstrained.png'))
-	plt.clf()
-	return
-
-def calc_errorbars(error_df, subdir):
-
-	df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
-	pass
-
-
-def crawl_charges():
-	"""Find and summarize non-averaged charges."""
-	error_df = None
-	i = 0
-	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk('./')):
-
-		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
-			continue
-
-		# Select the folders with cost function
-		if 'horton_cost_function' in subdir:
-			print('Moving to {}'.format(subdir))
-		
-			# Use the first charge file to come across as a error template	
-			if error_df is None:
-				df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
-				# Set bounds to be compared against later
-				df['min_q'] = 100
-				df['max_q'] = -100
-				df['avg_q'] = 0
-				df['un_min_q'] = 100
-				df['un_max_q'] = -100
-				df['un_avg_q'] = 0
-				error_df = df.drop('q', axis=1)
-
-			# Read in the next point charge fit
-			df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'), sep=',')
-			# Set new min and max values for the charges
-			mask = df.q < error_df.min_q
-			error_df.min_q.loc[mask] = df.q.loc[mask]
-			max_mask = df.q > error_df.max_q
-			error_df.max_q.loc[max_mask] = df.q.loc[max_mask]
-			error_df.avg_q += df.q
-
-			# Set new min and max values for the unconstrained charges
-			min_mask = df.q_unconstrained < error_df.un_min_q
-			error_df.un_min_q.loc[min_mask] = df.q_unconstrained.loc[min_mask]
-			max_mask = df.q_unconstrained > error_df.un_max_q
-			error_df.un_max_q.loc[max_mask] = df.q_unconstrained.loc[max_mask]
-			error_df.un_avg_q += df.q
-			i += 1
-	
-	error_df.avg_q /= i
-	error_df.un_avg_q /= i
-	return error_df
-
-def stripplot_errorbars(df, out_path):
-	"""Plot stripplot with errorbars"""
-	plt.figure()
-	ax = plt.subplot(111)
-	
-	c, label = 'b', 'test'
-	kwargs = {'y': 'atom', 'ax': ax}
-
-	# Plot unconstrained charges
-	residue = df.residue.unique()
-	colors = ['royalblue', 'dodgerblue', 'lightsteelblue']
-	for i in range(len(residue)):
-		res = residue[i]
-		res_df = df.loc[df.residue == res]
-		c = colors[i] 
-		label = 'unconstrained ' + res
-		fgrid = sns.stripplot(data=res_df, x='un_avg_q', **kwargs, color=c)
-		fgrid = sns.stripplot(data=res_df, x='un_min_q', marker="<", **kwargs, color=c)
-		fgrid = sns.stripplot(data=res_df, x='un_max_q', marker=">", **kwargs, color=c)
-	print(res_df)
-
-	# Plot constrained charges
-	c = 'firebrick'
-	fgrid = sns.stripplot(data=df, x='avg_q', y='atom', ax=ax, color='r')
-	fgrid = sns.stripplot(data=df, x='min_q', y='atom', ax=ax, color='r', marker="<")
-	fgrid = sns.stripplot(data=df, x='max_q', y='atom', ax=ax, color='r', marker=">")
-
-	plt.legend()
-	plt.savefig(os.path.join(out_path, 'errorbars_stripplot.png'))
-	return
-
 def collect_charges():
 	"""Find charges and put them in one dataframe."""
 	# Initialize collection data frame
@@ -241,7 +148,7 @@ def pointplot_errorbars(df, out_path):
 
 	# Constrained
 	c_df = df.loc[df['Constraint Type'] == 'q']
-	pp = sns.pointplot('Charge', 'Atom', data=c_df, 
+	pp = sns.pointplot('Charge', 'Atom', data=c_df, scale=1.2, 
 			     join=False, err_style='bars', color='black',
 			     label='Constrained', zorder=100)
 	# unconstrained
@@ -260,20 +167,15 @@ def main():
 	# Setup the directory structure
 	out_path = create_dir()
 
-	# Pointplot charges with errorbarsr
-	df = collect_charges()
-	pointplot_errorbars(df, out_path=out_path)
+	# Collect all individual charges
+	collect_df = collect_charges()
+	# Pointplot charges with errorbars
+	pointplot_errorbars(collect_df, out_path=out_path)
 
 
-	# Read the newly fitted charges
+	# Read averaged charges
 	input_path = './horton_charges/fitted_point_charges.csv'
 	df = pd.read_csv(input_path)
-
-	# Strip Plots
-	stripplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained')
-	error_df = crawl_charges()
-	stripplot_errorbars(error_df, out_path=out_path)
-	
 
 	# Plot constrained vs unconstrained charges
 	scatterplot_constraints(df, out_path)
