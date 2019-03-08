@@ -164,9 +164,13 @@ def export(A, B, template_path='./average_cost.h5'):
 	print('\nData has been written to {}'.format(template_path))
 
 def main():
-	"""
-	Run the script.
-	"""
+	""" Run the script."""
+	# Create a folder for the averaged cost function
+	chargepath = './horton_charges'
+	if os.path.isdir(chargepath):
+		os.rmdir(chargepath)
+	os.mkdir(chargepath)
+
 	# Find the locations of the cost function files
 	cost_function_paths = find_cost()
 
