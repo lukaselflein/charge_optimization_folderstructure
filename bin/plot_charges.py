@@ -54,10 +54,12 @@ def extract_init_charges(rtp_path, df):
 
 def generic_scatterplot(df, x_name, y_name):
 	"""Default plotting options"""
+	# Scatterplot with regression line
 	fgrid = sns.lmplot(x=x_name, y=y_name, data=df, fit_reg=True)
 
 	# Add annotations
 	ax = fgrid.axes[0,0]
+	# Move the labels to the right
 	offset = df[x_name].max() * 0.05
 	for line in range(0,df.shape[0]):
 		text = df['atom'][line]
@@ -88,7 +90,6 @@ def scatterplot_comparison(df, out_path, x_name='q', y_name='q_init'):
 	plt.savefig(os.path.join(out_path, 'scatter_before_after.png'))
 	print('Successfully plotted: {}'.format(title))
 	plt.clf()
-	return
 
 def scatterplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained'):
 	"""Plot the effect of contraints"""
@@ -101,7 +102,6 @@ def scatterplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained'):
 	plt.savefig(os.path.join(out_path, 'scatter_q_unconstrained.png'))
 	print('Successfully plotted: {}'.format(title))
 	plt.clf()
-	return
 
 def collect_charges():
 	"""Find charges and put them in one dataframe."""
@@ -120,7 +120,6 @@ def collect_charges():
 			# Extract timestamp
 			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
 			time = int(time)
-			print('Timestamp is {}'.format(time))
 		
 			# Use the first charge file to come across as a template	
 			df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
@@ -131,6 +130,7 @@ def collect_charges():
 			else:
 				coll_df = coll_df.append(df)
 
+	print('All collected. Transforming wide to long format ...')
 	# Transform the wide format into a long format version (for easier plotting)
 	coll_df = pd.melt(coll_df, id_vars=['atom', 'residue', 'timestamp'], 
 			  value_vars=['q', 'q_unconstrained'])
@@ -149,17 +149,68 @@ def pointplot_errorbars(df, out_path):
 	# Constrained
 	c_df = df.loc[df['Constraint Type'] == 'q']
 	pp = sns.pointplot('Charge', 'Atom', data=c_df, scale=1.2, 
-			     join=False, err_style='bars', color='black',
-			     label='Constrained', zorder=100)
+			     join=False, color='black',
+			     label='Constrained', zorder=100,
+			     err_style="std")
 	# unconstrained
 	sns.set_palette('pastel')
-	uc_df = df.loc[df['Constraint Type'] == 'q_unconstrained']
-	sns.pointplot('Charge', 'Atom', hue='residue', data=uc_df, alpha=0.3,
-			     join=False, err_style='bars', dodge=0.2, zorder=1, ax=pp.axes, scale = 0.75)
+	uc = df.loc[df['Constraint Type'] == 'q_unconstrained']
+	sns.pointplot('Charge', 'Atom', hue='residue', data=uc, alpha=0.3,
+		      join=False, err_style='bars', dodge=0.2, zorder=1, ax=pp.axes, 
+		      scale = 0.75, type='bar', notch=True)
+
+	# Averaged cost function
+	input_path = './horton_charges/fitted_point_charges.csv'
+	avg_df = pd.read_csv(input_path)
+	sns.pointplot('q', 'atom', data=avg_df, ax=pp.axes, join=False, color='firebrick', marker=2)
+
+	pp.figure.savefig(os.path.join(out_path, 'pointplot_confidence.png'))
+	plt.clf()
+
+def boxplot(df, out_path):
+	""" Boxplot."""
+	fig = plt.figure(figsize=(16,10))
 
 
-	pp.figure.savefig(os.path.join(out_path, 'pointplot_errorbars.png'))
-	return
+	# Unconstrained
+	sns.set_palette('pastel')
+	uc = df.loc[df['Constraint Type'] == 'q_unconstrained']
+	bp = sns.boxplot(x='Charge', y='Atom', hue='residue', data=uc, whis=100)
+	ax = bp.axes
+
+	# Constrained
+	c_df = df.loc[df['Constraint Type'] == 'q']
+	sns.boxplot(x='Charge', y='Atom', data=c_df, color='black', ax=ax, whis=100)
+
+	# Averaged cost function
+	input_path = './horton_charges/fitted_point_charges.csv'
+	avg_df = pd.read_csv(input_path)
+	sns.pointplot('q', 'atom', data=avg_df, ax=ax, join=False, color='firebrick')
+
+	for i,artist in enumerate(ax.artists):
+		# Set the linecolor on the artist to the facecolor, and set the facecolor to None
+		col = artist.get_facecolor()
+		artist.set_edgecolor(col)
+		artist.set_facecolor('None')
+
+		# Each box has 6 associated Line2D objects (to make the whiskers, fliers, etc.)
+		# Loop over them here, and use the same colour as above
+		for j in range(i*6,i*6+6):
+			line = ax.lines[j]
+			line.set_color(col)
+			line.set_mfc(col)
+			line.set_mec(col)
+
+	handles, _ = ax.get_legend_handles_labels()
+	# Complete the legend by adding constraint condition to the labels
+	residue = ['Unconstrained ' + r for r in df.residue.unique()]
+	# Second plot does not show up in handles, unclear how to add it to legend
+	ax.legend(handles, [residue[0], residue[1], residue[2]])  # , 'Constrained', 'Averaged Cost'])
+	
+	ax.yaxis.grid(True)  # Show horizontal gridlines
+	ax.tick_params(grid_alpha=0.5)
+	bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
+	plt.clf()
 
 def main():
 	"""TODO """
@@ -168,10 +219,17 @@ def main():
 	out_path = create_dir()
 
 	# Collect all individual charges
+	print('Collecting charges ...')
 	collect_df = collect_charges()
-	# Pointplot charges with errorbars
-	pointplot_errorbars(collect_df, out_path=out_path)
 
+	# Pointplot charges with errorbars to get confidence intervals
+	pointplot_errorbars(collect_df, out_path=out_path)
+	print('Pointplot done.')
+
+	# Boxplot charges to get min/max errorbars
+	boxplot(collect_df, out_path=out_path)
+	print('Boxplot done.')
+	exit()
 
 	# Read averaged charges
 	input_path = './horton_charges/fitted_point_charges.csv'
