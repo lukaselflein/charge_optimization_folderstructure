@@ -15,10 +15,12 @@ def calc_cost_function(path):
 	esp_file = " ../3_united_atom_structure/esp_ua.cube"
 	output_file= " cost.h5"
 	density_file = " --wdens ../3_united_atom_structure/rho_ua.cube"
-	boundary_option= " --pbc 000"
+	boundary_option = " --pbc 000 "
+	sign_option = "--sign "  # changes sign
+	overwrite = "--overwrite "
 
 	# Build the command
-	command += esp_file + output_file + density_file + boundary_option
+	command += esp_file + output_file + density_file + boundary_option + sign_option + overwrite
 
 	# Execute the command
 	# print("Executing: \n{}".format(command))
@@ -33,6 +35,7 @@ def calc_cost_function(path):
 
 def main():
 	""" Execute everything."""
+	print(__doc__)
 
 	topdir = '.'
 
@@ -60,7 +63,7 @@ def main():
 
 			# Only if all files exist, start the calculation
 			elif warning is None:
-				print('Calculating: {}'.format(subdir))
+				# print('Calculating: {}'.format(subdir))
 				with cd(subdir):
 					calc_cost_function(subdir)
 	print('Done.')

@@ -138,7 +138,7 @@ def collect_charges():
 				 axis=1)
 	return coll_df
 
-def pointplot_errorbars(df, out_path):
+def pointplot_errorbars(df, avg_df, out_path):
 	"""Plot stripplot with errorbars"""
 
 	
@@ -160,14 +160,12 @@ def pointplot_errorbars(df, out_path):
 		      scale = 0.75, type='bar', notch=True)
 
 	# Averaged cost function
-	input_path = './horton_charges/fitted_point_charges.csv'
-	avg_df = pd.read_csv(input_path)
 	sns.pointplot('q', 'atom', data=avg_df, ax=pp.axes, join=False, color='firebrick', marker=2)
 
 	pp.figure.savefig(os.path.join(out_path, 'pointplot_confidence.png'))
 	plt.clf()
 
-def boxplot(df, out_path):
+def boxplot(df, avg_df, out_path):
 	""" Boxplot."""
 	fig = plt.figure(figsize=(16,10))
 
@@ -183,8 +181,6 @@ def boxplot(df, out_path):
 	sns.boxplot(x='Charge', y='Atom', data=c_df, color='black', ax=ax, whis=100)
 
 	# Averaged cost function
-	input_path = './horton_charges/fitted_point_charges.csv'
-	avg_df = pd.read_csv(input_path)
 	sns.pointplot('q', 'atom', data=avg_df, ax=ax, join=False, color='firebrick')
 
 	for i,artist in enumerate(ax.artists):
@@ -209,11 +205,13 @@ def boxplot(df, out_path):
 	
 	ax.yaxis.grid(True)  # Show horizontal gridlines
 	ax.tick_params(grid_alpha=0.5)
+	ax.set_xlim(-2, 2)
 	bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
 	plt.clf()
 
 def main():
-	"""TODO """
+	"""Execute everything. """
+	print(__doc__)
 
 	# Setup the directory structure
 	out_path = create_dir()
@@ -222,28 +220,25 @@ def main():
 	print('Collecting charges ...')
 	collect_df = collect_charges()
 
+	# Read charges from averaged cost function
+	input_path = './horton_charges/fitted_point_charges.csv'
+	avg_df = pd.read_csv(input_path)
+
 	# Pointplot charges with errorbars to get confidence intervals
-	pointplot_errorbars(collect_df, out_path=out_path)
-	print('Pointplot done.')
+	pointplot_errorbars(collect_df, avg_df, out_path=out_path)
+	print('Pointplot saved.')
 
 	# Boxplot charges to get min/max errorbars
-	boxplot(collect_df, out_path=out_path)
-	print('Boxplot done.')
-	exit()
-
-	# Read averaged charges
-	input_path = './horton_charges/fitted_point_charges.csv'
-	df = pd.read_csv(input_path)
+	boxplot(collect_df, avg_df, out_path=out_path)
+	print('Boxplot saved.')
 
 	# Plot constrained vs unconstrained charges
-	scatterplot_constraints(df, out_path)
+	# scatterplot_constraints(collect_df, out_path)
 
 	# Plot old charges vs new ones
-	old_charges = extract_init_charges(rtp_path='./md_simulation/n7nh2.rtp', df=df)
-	# old_charges = extract_init_charges(rtp_path='modified_charges_sarah_gpaw.rtp', df=df)
-
+	old_charges = extract_init_charges(rtp_path='./md_simulation/n7nh2.rtp', df=avg_df)
 	# Put both old and new charges in same table for comparison
-	merged_df = old_charges.merge(df, how='inner', on=['atom', 'residue'])
+	merged_df = old_charges.merge(avg_df, how='inner', on=['atom', 'residue'])
 	# Throw away unneccessary information
 	merged_df = merged_df[['residue', 'atom', 'q_init', 'q']]
 	# Plot the old and new charges 

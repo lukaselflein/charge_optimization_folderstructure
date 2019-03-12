@@ -36,9 +36,8 @@ def submit(subdir):
 		logfile.write(output)
 
 def main():
-	"""
-	Execute everything.
-	"""
+	""" Execute everything."""
+	print(__doc__)
 
 	topdir = '.'
 
@@ -46,7 +45,7 @@ def main():
 	for subdir, dirs, files in os.walk(topdir):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folders with submission scripts

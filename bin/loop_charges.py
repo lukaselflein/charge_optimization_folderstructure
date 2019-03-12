@@ -1,4 +1,4 @@
-""" Search for inital united atom structures, convert them to all atom format.
+""" Calculate HORTON charges for all .cube files in folderstructure.
 Copyright 2019 Simulation Lab
 University of Freiburg
 Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
@@ -47,7 +47,7 @@ def calc_charges(subdir, qtot=0):
 
 def main():
 	""" Execute everything."""
-
+	print(__doc__)
 	# TODO: make this a command line argument
 	qtot=0
 

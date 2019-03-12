@@ -7,27 +7,13 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 import os
 import sys
 import shutil
+import argparse
+import smamp
 
-# Hacky relative import to avoid having to install a package
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'bin'))
-import convert_UA_to_AA
-
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
+from smamp.tools import cd
 
 def convert(subdir):
-	"""
-	Converts united atom files to all atom format.
-	"""
+	"""Converts united atom files to all atom format."""
 	with cd(subdir):
 		# The UA file should be in ../0_initial_structure
 		path = '../0_initial_structure'
@@ -42,13 +28,20 @@ def convert(subdir):
 				raise RuntimeError('Multiple snapshot.pdb files found.')
 
 		# Convert the united atoms file
-		convert_UA_to_AA.main()
+		smamp.convert_UA_to_AA.main()
+
+def cmd_parser():
+	"""Read Command line arguments."""
+	parser = argparse.ArgumentParser(prog='',
+			description=__doc__.splitlines()[0])
+
+	args = parser.parse_args()
 	
 
 def main():
-	"""
-	Execute everything.
-	"""
+	""" Execute everything."""
+	cmd_parser()
+	print(__doc__)
 
 	# Save the working dir
 	topdir = os.getcwd()

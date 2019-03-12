@@ -1,4 +1,4 @@
-""" Search for inital united atom structures, convert them to all atom format.
+""" Search for 'all atoms' structures used in DFT, convert them to 'united atoms' format.
 Copyright 2019 Simulation Lab
 University of Freiburg
 Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
@@ -54,9 +54,8 @@ def convert(subdir):
 			smamp.aa2ua_cube.aa2ua_cube(**kwargs)
 
 def main():
-	"""
-	Execute everything.
-	"""
+	"""Execute everything."""
+	print(__doc__)
 
 	# Save the working dir
 	topdir = os.getcwd()
