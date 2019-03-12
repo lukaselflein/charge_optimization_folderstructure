@@ -1,1 +1,0 @@
-../../../bin/convert_UA_to_AA.py
