@@ -147,10 +147,8 @@ def read_input_files(input_dir='../0_initial_structure'):
 
 
 def main():
-    """
-    Execute everything.
-    """
-
+    """Execute everything."""
+    print('This is {}.'.format(__file__)
     # Read the united-atoms files extracted from the MD-simulation trajectory
     # throws some warnings on angle types, does not matter for bonding info
     with warnings.catch_warnings():

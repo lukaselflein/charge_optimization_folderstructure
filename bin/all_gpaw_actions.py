@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """ Search for inital united atom structures, convert them to all atom format.
 Copyright 2019 Simulation Lab
 University of Freiburg
@@ -86,10 +85,8 @@ def extract(struc, calc):
 	write('rho.cube', struc, data=rho_per_bohr_cube) 
 
 def main():
-	"""
-	Execute everything.
-	"""
-
+	"""Execute everything."""
+	print('This is {}.'.format(__file__)
 	
 	traj_file, gpw_file = parser()
 	if gpw_file is not None:

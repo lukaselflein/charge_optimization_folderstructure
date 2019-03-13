@@ -55,8 +55,7 @@ def convert(subdir):
 
 def main():
 	"""Execute everything."""
-	print(__doc__)
-
+	print('This is {}.'.format(__file__)
 	# Save the working dir
 	topdir = os.getcwd()
 	print('Current working dir: {}'.format(topdir))

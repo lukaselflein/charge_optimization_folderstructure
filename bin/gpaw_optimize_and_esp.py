@@ -103,10 +103,8 @@ def extract(struc, calc):
 	write('rho.cube', struc, data=rho_per_bohr_cube) 
 
 def main():
-	"""
-	Execute everything.
-	"""
-
+	"""Execute everything."""
+	print('This is {}.'.format(__file__)
 	# Read Command line arguments	
 	traj_file, gpw_file = parser()
 

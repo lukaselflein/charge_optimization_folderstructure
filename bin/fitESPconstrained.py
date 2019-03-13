@@ -1172,6 +1172,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
 ### ACTUAL PROGRAM ###
 #--------------------#
 def main():
+    print('This is {}.'.format(__file__)
     import sys
     import ast
     import argparse

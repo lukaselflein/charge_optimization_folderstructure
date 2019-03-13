@@ -137,9 +137,8 @@ def cmd_parser():
 	
 	
 def main():
-	"""
-	Run the script.
-	"""
+	"""Run the script."""
+	print('This is {}.'.format(__file__)
 	rtp_path, csv_path, out_path = cmd_parser()
 	charges = import_charges(csv_path)
 	sub_text = parse_rft(rtp_path=rtp_path, charges=charges) 

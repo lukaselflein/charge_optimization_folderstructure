@@ -18,6 +18,7 @@ import warnings
 import argparse
 
 def main():
+    print('This is {}.'.format(__file__)
     parser = argparse.ArgumentParser(\
         description='Converts an all-atom cube file into united-atom'
             ' representation based on certain replacement rules')

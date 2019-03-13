@@ -165,6 +165,7 @@ def export(A, B, template_path='./average_cost.h5'):
 
 def main():
 	""" Run the script."""
+	print('This is {}.'.format(__file__)
 	# Create a folder for the averaged cost function
 	chargepath = './horton_charges'
 	if os.path.isdir(chargepath):
