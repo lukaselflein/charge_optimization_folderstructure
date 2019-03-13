@@ -10,7 +10,9 @@ pip install --user smamp
 Alternatively, you can use the make_module.sh script to install & load it as a module.
 
 3. Use version from Lukas
+
 module use /home/fr/fr_fr/fr_le1019/modulefiles
+
 module load smamp
 
 ### Organization
