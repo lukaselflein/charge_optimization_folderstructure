@@ -5,11 +5,8 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 """
 
 import os
-import sys
-import shutil
 from smamp.tools import cd
 import smamp
-import warnings
 
 def convert(subdir):
 	"""
@@ -55,10 +52,10 @@ def convert(subdir):
 
 def main():
 	"""Execute everything."""
-	print('This is {}.'.format(__file__)
+	print('This is {}.'.format(__file__))
 	# Save the working dir
-	topdir = os.getcwd()
-	print('Current working dir: {}'.format(topdir))
+	topdir = './'
+	print('Current working dir: {}'.format(os.getcwd()))
 	
 	# Crawl the directory structure
 	for subdir, dirs, files in sorted(os.walk(topdir)):

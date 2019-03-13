@@ -142,7 +142,7 @@ def cmd_parser():
 
 def main():
 	"""Run the script."""
-	print('This is {}.'.format(__file__)
+	print('This is {}.'.format(__file__))
 
 	# Read Command-Line Arguments
 	working_dir, end_time, start_time, delta_time, trajectory_file, tpr_file, top_file = cmd_parser()

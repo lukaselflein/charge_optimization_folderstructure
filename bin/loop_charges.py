@@ -47,7 +47,7 @@ def calc_charges(subdir, qtot=0):
 
 def main():
 	""" Execute everything."""
-	print('This is {}.'.format(__file__)
+	print('This is {}.'.format(__file__))
 	# TODO: make this a command line argument
 	qtot=0
 

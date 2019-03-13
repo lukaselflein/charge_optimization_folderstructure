@@ -104,7 +104,7 @@ def extract(struc, calc):
 
 def main():
 	"""Execute everything."""
-	print('This is {}.'.format(__file__)
+	print('This is {}.'.format(__file__))
 	# Read Command line arguments	
 	traj_file, gpw_file = parser()
 
