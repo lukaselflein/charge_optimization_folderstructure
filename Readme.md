@@ -11,16 +11,21 @@ This repo contains scripts and a folderstructure to automate the calculation of 
 ### Prerequisites
 Make sure you have the smamp module:
 1. Local installation
-pip install --user smamp
+```bash
+user@machine:~$ pip install --user smamp
+```
 
 2. Module installation
-Alternatively, you can use the make_module.sh script to install & load it as a module.
+Alternatively, you can use the make_module.sh script to install & load it as a module
+```bash
+user@machine:~$ bash make_module.sh
+```
 
-3. Use version from Lukas
-
+3. Use Lukas' local version
+```bash
 module use /home/fr/fr_fr/fr_le1019/modulefiles
-
 module load smamp
+```
 
 ### Organization
 The folders are organized in four levels:
