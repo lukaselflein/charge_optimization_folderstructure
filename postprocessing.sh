@@ -52,3 +52,11 @@ module purge
 module load devel/python/3.6.5
 python plot_charges.py
 # Output: scatter_q_unconstrained.png, scatter_before_after.png (in pictures/ )
+
+# Calculate Bader Charges
+module purge
+module load devel/python/3.6.5
+module load bader-analysis
+module load gromacs
+module load smamp
+python loop_bader.py
