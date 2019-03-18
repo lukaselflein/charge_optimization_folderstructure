@@ -92,10 +92,10 @@ def extract(struc, calc):
 	esp_hartree = esp / Hartree   
 	write('esp.cube', struc, data=esp_hartree)
 
-	# Psedo-density, what does this do?
-	rho_pseudo      = calc.get_pseudo_density()
-	rho_pseudo_per_bohr_cube = rho_pseudo * Bohr**3
-	write('rho_pseudo.cube', struc, data=rho_pseudo_per_bohr_cube) 
+	# Psedo-density, does not seem to be used in workflow
+	# rho_pseudo      = calc.get_pseudo_density()
+	# rho_pseudo_per_bohr_cube = rho_pseudo * Bohr**3
+	# write('rho_pseudo.cube', struc, data=rho_pseudo_per_bohr_cube) 
 
 	# Density
 	rho             = calc.get_all_electron_density()
