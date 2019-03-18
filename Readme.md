@@ -23,8 +23,8 @@ user@machine:~$ bash make_module.sh
 
 3. Use Lukas' local version
 ```bash
-module use /home/fr/fr_fr/fr_le1019/modulefiles
-module load smamp
+user@machine:~$ module use /home/fr/fr_fr/fr_le1019/modulefiles
+user@machine:~$ module load smamp
 ```
 
 ### Organization
