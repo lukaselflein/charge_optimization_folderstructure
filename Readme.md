@@ -14,6 +14,7 @@ We then re-do the charge calculation, and if the resulting charges q** are simil
 This repo contains scripts and a folderstructure to automate the calculation workflow to get these charges.
 
 ### Prerequisites
+Some tools and often-reused snippets are outsourced into a pip package, `smamp`.
 Make sure you have the smamp module:
 1. Local installation
 ```bash
