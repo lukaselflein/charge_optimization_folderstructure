@@ -21,8 +21,7 @@ Make sure you have the smamp module:
 user@machine:~$ pip install --user smamp
 ```
 
-2. Module installation
-Alternatively, you can install it as a module:
+2. Alternatively, you can install it as a module:
 ```bash
 user@machine:~$ mkdir ~/modulefiles
 user@machine:~$ cd ~/modulefiles
