@@ -13,11 +13,13 @@ pwd
 mkdir md_simulation
 cp ../md_simulation_data/example.top md_simulation/
 cp ../md_simulation_data/example.tpr md_simulation/
-cp ../md_simulation_data/example.xtc md_simulation/
 cp ../md_simulation_data/n7nh2.rtp   md_simulation/
+cp ../md_simulation_data/example.xtc md_simulation/
 
 # Create the snapshots and subfolder structure
 module purge
+module load smamp
+module load matscipy/0.2.0
 module load gromacs/2016.4-gnu-5.2
 # s/e: start/end time
 # d: time between snapshots
@@ -27,7 +29,7 @@ python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top m
 module purge
 module load gromacs/2016.4-gnu-5.2
 module load matscipy/0.2.0
-moudle load smamp
+module load smamp
 python loop_convert_UA_to_AA.py
 # Output: ase_pdbH.traj, (ase_pdbH.pdb, pmd_pdbH.pdb)
 

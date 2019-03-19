@@ -8,11 +8,10 @@ import shutil
 import argparse
 import os
 import subprocess
+import smamp
 
 def create_directories(working_dir, timesteps):
-	"""
-	Set up directories for each timestep
-	"""
+	"""Set up directories for each timestep."""
 	for time in timesteps:
 		path = working_dir + str(time) + '_ps_snapshot'
 		
@@ -42,36 +41,24 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 	"""
 
 	# Compose the command to GROMACS
-	snapshot_name = 'snapshot.pdb'
 	# Select the "other" group containing the molecule, excluding the solution:
 	command = 'echo 1 | '
 	# Specify input files
 	command += 'gmx trjconv -f {xtc} -s {tpr}'.format(xtc=trajectory_file, tpr=tpr_file)
 	# Specify output and timesteps
-	command += ' -o {pdb} -pbc mol -b {start} -e {end} -dt {dt} -sep'.format(pdb=snapshot_name, 
+	command += ' -o {pdb} -pbc mol -b {start} -e {end} -dt {dt} -sep'.format(pdb='snapshot.pdb', 
 										start=start_time,
 										end=end_time,
 										dt=delta_time)
 
 	print('\nRunning GROMACS trjconv, please wait ...')
 
-	verbose = True
-	if verbose == True:
-		try:
-			subprocess.check_call([command], shell=True)
-		except:
-			raise RuntimeError('I got an error from: \n "{}"\
-					   \n Did you load GROMACS?'.format(command))
-
-	else:
-		# This call catches the stderr output without printing it
-		pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, 
-					stderr=subprocess.PIPE)
-		result = pipe.communicate()
-		with open('gmx_trjconv.log', 'wb') as logfile:
-			for line in result:
-				logfile.write(line)
-		print('GROMACS finished successfully.')
+	pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+	result = pipe.communicate()
+	# with open('gmx_trjconv.log', 'wb') as logfile:
+	#	for line in result:
+	#		logfile.write(line)
+	print('GROMACS finished successfully.')
 
 	# Check if output exists, then move to respective folders
 	index = 0  # This is for GROMACS naming convention in [0..n]
@@ -92,7 +79,7 @@ def extract_snapshots(trajectory_file, tpr_file, top_file, working_dir,
 			raise RuntimeError('Folder {} is missing'.format(target_folder))
 
 		# Move snapshot to its own folder
-		shutil.move(snapshot_path, os.path.join(target_folder, 'snapshot.pdb'))
+		shutil.move(snapshot_path, os.path.join(target_folder, 'snapshot_{}.pdb'.format(time)))
 
 		# Copy the .top to the subfolders
 		top_name = os.path.split(top_file)[-1]
@@ -114,15 +101,15 @@ def cmd_parser():
 
 	parser.add_argument('-xtc',
         help='The path to the trajectory file',
-	default='./simulation/example.xtc', metavar='./traject.xtc')
+	default=None, metavar='./traject.xtc')
 
 	parser.add_argument('-tpr',
         help='The path to the topolgy file',
-	default='./simulation/example.tpr', metavar='./topo.tpr')
+	default=None, metavar='./topo.tpr')
 
 	parser.add_argument('-top',
         help='The path to the .top topolgy file',
-	default='./simulation/example.top', metavar='./topo.top')
+	default=None, metavar='./topo.top')
 
 	parser.add_argument('-e', metavar='1000',
         help='The timestamp of the last snapshot', 
@@ -130,7 +117,7 @@ def cmd_parser():
 
 	parser.add_argument('-s', metavar='100',
         help='The timestamp of the first snapshot',
-	default='200', type=int)
+	default='100', type=int)
 
 	parser.add_argument('-d', metavar='100',
         help='The difference in time between snapshots',
@@ -146,6 +133,25 @@ def main():
 
 	# Read Command-Line Arguments
 	working_dir, end_time, start_time, delta_time, trajectory_file, tpr_file, top_file = cmd_parser()
+
+	# Search for files if they were not given via command line arguments
+	if tpr_file is None:
+		print('.tpr file not provided. Searching ...')
+		tpr = smamp.tools.find(path='.', folder_keyword='md_simulation', file_keyword='.tpr')
+		print('Using .tpr file: {}'.format(tpr[0]))
+		tpr_file = tpr[0]
+
+	if top_file is None:
+		print('.top file not provided. Searching ...')
+		top = smamp.tools.find(path='.', folder_keyword='md_simulation', file_keyword='.top')
+		print('Using .top file: {}'.format(top[0]))
+		top_file = top[0]
+
+	if trajectory_file is None:
+		print('.xtc file not provided. Searching ...')
+		xtc = smamp.tools.find(path='.', folder_keyword='md_simulation', file_keyword='.xtc')
+		print('Using .xtc file: {}'.format(xtc[0]))
+		trajectory_file = xtc[0]
 
 	# Calculate the corresponding timesteps
 	timesteps = range(start_time, end_time + delta_time, delta_time)
