@@ -14,7 +14,7 @@ We then re-do the charge calculation, and if the resulting charges q** are simil
 This repo contains scripts and a folderstructure to automate the calculation workflow to get these charges.
 
 ### Prerequisites
-Some tools and often-reused snippets are outsourced into a pip package, `smamp`.
+Some tools and often-reused snippets are outsourced into a pip package, [smamp](https://github.com/lukaselflein/smamp).
 Make sure you have the smamp module:
 1. Local installation
 ```bash
@@ -59,10 +59,13 @@ user@machine:~$ mv charge_optimization_folderstructure/ example/
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
 
 #### Create your first charge cycle
+Go into your fresh copy. Inside, copy the template folder:
 ```bash
 user@machine:~$ cp -r .template_simulation 1_charge_cycle 
 user@machine:~$ cd 1_charge_cycle
 ```
+Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second ... iteration `2_charge_cycle`, you have an overview of all charge cycles side-by-side.
+
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
 ```bash
@@ -104,7 +107,7 @@ If you want to automate all of the above steps, you can edit the `preprocessing.
 
 ### Postprocessing
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
-Plots are automatically gereneted in `images`.
+Plots are automatically generated in `images`.
 
 ### Content
 * `Readme.md`: The Readme you are reading right now.
