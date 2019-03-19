@@ -85,6 +85,14 @@ user@machine:~$ module load devel/python/3.6.5
 user@machine:~$ module load smamp
 user@machine:~$ python loop_submit.py
 ```
+Now you will have to wait for the DFT calculations to finish.
+
+### Automation
+If you want to automate all of the above steps, you can edit the `preprocessing.sh` script. All the above commands are in there, and you can write your filenames and paths in there.
+
+### Postprocessing
+The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
+Plots are automatically gereneted in `images`.
 
 ### Content
 * `Readme.md`: The Readme you are reading right now.
