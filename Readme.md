@@ -37,11 +37,10 @@ user@machine:~$ module load smamp
 ```
 
 ### Organization
-The folders are organized in four levels:
-1. Lowerest: subfolders for the diverse charge fitting and conversion routines.
-2. Snapshot: Each snapshot has its own folder, containing (1).
-3. Simulation: For each set of charges, a seperate MD simulation is run. Contains subfolders for the snapshots extracted from the trajectory (2).
-4. Current directory: Simulating and fitting charges is iteratated until charges converge. This is the highest level. Subfolders correspond to different simulations (3).
+The Project is organized in multiple levels:
+1. Highest: This is the current directory. Here, you can put the different self-consistent charge cycles, e.g. the first, second, .. iterations.
+2. Charge cycle: Here you will find the administrative scripts, for looping over the actual calculations. Also, the different snapshots are in seperate directories on this level.
+3. Snapshot: For every timestamp, a new directory is created. It contains folders for the different steps of the charge optimization workflow.
 <img src="./.pictures/folder_hierarchy.png" width="400px">
 
 ### Content
