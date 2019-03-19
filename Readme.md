@@ -107,7 +107,7 @@ If you want to automate all of the above steps, you can edit the `preprocessing.
 
 ### Postprocessing
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
-Plots are automatically gereneted in `images`.
+Plots are automatically generated in `images`.
 
 ### Content
 * `Readme.md`: The Readme you are reading right now.
