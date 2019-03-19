@@ -44,12 +44,12 @@ The Project is organized in multiple levels:
 <img src="./.pictures/folder_hierarchy.png" width="400px">
 
 ### Content
-`Readme.md`: The Readme you are reading right now.
-`bin`: Bash and python scripts for fitting, conversion, extracting, and visualization.
-`preprocessing.sh`: BASH Commands for preprocessing the input up to and including the DFT calculations.
-`postprocessing.sh`: BASH commands to extract densities, calculate and visualize charges.
-`.pictures`: Pictures for the Readme.
-`.simulation_template`: The full template simulation folder structure.
+* `Readme.md`: The Readme you are reading right now.
+* `bin`: Bash and python scripts for fitting, conversion, extracting, and visualization.
+* `preprocessing.sh`: BASH Commands for preprocessing the input up to and including the DFT calculations.
+* `postprocessing.sh`: BASH commands to extract densities, calculate and visualize charges.
+* `.pictures`: Pictures for the Readme.
+* `.simulation_template`: The full template simulation folder structure.
 
 ### Usage
 Copy the `simulation_template` folder structure, and rename to a specific simulation name, e.g. `simulation-1.0-a`. 
