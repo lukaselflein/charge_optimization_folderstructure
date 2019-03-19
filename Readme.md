@@ -59,10 +59,13 @@ user@machine:~$ mv charge_optimization_folderstructure/ example/
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
 
 #### Create your first charge cycle
+Go into your fresh copy. Inside, copy the template folder:
 ```bash
 user@machine:~$ cp -r .template_simulation 1_charge_cycle 
 user@machine:~$ cd 1_charge_cycle
 ```
+Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second ... iteration `2_charge_cycle`, you have an overview of all charge cycles side-by-side.
+
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
 ```bash
