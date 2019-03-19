@@ -1,12 +1,17 @@
-# Sarah Folder Structure
+# Charge Optimization Folderstructure
 Create a consistent, documented pipline and folder structure for self-consistent MD charge optimization.
 
 ### Goal
 SMAMP (synthetic mimics of antimicrobial peptides) can be used for antimicrobial coating in medical applications.
-To understand a class of SMAMP, we simulate them via Molecular Dynamics (MD).
+To understand a SMAMP better, we simulate it via Molecular Dynamics (MD).
 An essential component of MD are point-charges.
 These are not available for the SMAMP molecules of interest, so we have to determine them ourselves.
-This repo contains scripts and a folderstructure to automate the calculation of these charges.
+There are different ways in which we can calculate these charges, and it is not clear which one is the best.
+A neccessary criterion for good charges is self-consistency: 
+We calculate them from some snapshots of a MD simulation, an then do a new MD simulation with these new charges $q*$. 
+We then re-do the charge calculation, and if the resulting charges $q**$ are similar to $q*$, this is a good indicator that our charges are meaningful.
+
+This repo contains scripts and a folderstructure to automate the calculation workflow to get these charges.
 
 ### Prerequisites
 Make sure you have the smamp module:
