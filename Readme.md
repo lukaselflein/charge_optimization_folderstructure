@@ -74,7 +74,7 @@ user@machine:~$ python create_snapshots_from_trajectory.py -tpr md_simulation/ex
 user@machine:~$ module purge
 user@machine:~$ module load gromacs/2016.4-gnu-5.2
 user@machine:~$ module load matscipy/0.2.0
-user@machine:~$ moudle load smamp
+user@machine:~$ module load smamp
 user@machine:~$ python loop_convert_UA_to_AA.py
 ```
 
