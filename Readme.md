@@ -38,7 +38,7 @@ user@machine:~$ module load smamp
 
 ### Organization
 The Project is organized in multiple levels:
-1. Highest: This is the current directory. Here, you can put the different self-consistent charge cycles, e.g. the first, second, .. iterations.
+1. Highest: This is the current directory. Here, you can put the different self-consistent charge cycles, e.g. the first, second, .. iterations. Also, the folder with the calculation scripts `bin` is located on this level.
 2. Charge cycle: Here you will find the administrative scripts, for looping over the actual calculations. Also, the different snapshots are in seperate directories on this level.
 3. Snapshot: For every timestamp, a new directory is created. It contains folders for the different steps of the charge optimization workflow.
 <img src="./.pictures/folder_hierarchy.png" width="400px">
