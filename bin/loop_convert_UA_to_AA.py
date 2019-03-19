@@ -41,7 +41,7 @@ def cmd_parser():
 def main():
 	""" Execute everything."""
 	cmd_parser()
-	print(__doc__)
+	print('This is {}.'.format(__file__))
 
 	# Save the working dir
 	topdir = os.getcwd()

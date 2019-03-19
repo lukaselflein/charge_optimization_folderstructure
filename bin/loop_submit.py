@@ -37,12 +37,10 @@ def submit(subdir):
 
 def main():
 	""" Execute everything."""
-	print(__doc__)
-
-	topdir = '.'
+	print('This is {}.'.format(__file__))
 
 	# Crawl the directory structure
-	for subdir, dirs, files in os.walk(topdir):
+	for subdir, dirs, files in os.walk('.'):
 
 		# Exclude template folders from search
 		if 'template' in subdir or 'exclude' in subdir:

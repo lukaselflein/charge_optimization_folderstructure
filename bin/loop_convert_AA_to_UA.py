@@ -53,12 +53,10 @@ def convert(subdir):
 def main():
 	"""Execute everything."""
 	print('This is {}.'.format(__file__))
-	# Save the working dir
-	topdir = './'
-	print('Current working dir: {}'.format(os.getcwd()))
 	
+	print('Current working dir: {}'.format(os.getcwd()))
 	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk(topdir)):
+	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
 		if 'template' in subdir or 'exclude' in subdir:

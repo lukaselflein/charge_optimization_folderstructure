@@ -255,14 +255,8 @@ def boxplot(df, out_path):
 	bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
 	plt.clf()
 
-
-def main():
-	"""Execute everything. """
-	print(__doc__)
-
-	# Setup the directory structure
-	out_path = create_dir()
-
+def collect_all():
+	"""Return Horton, Bader, Averaged charges as one long-format dataframe."""
 	# Read charges from averaged cost function
 	input_path = './horton_charges/fitted_point_charges.csv'
 	avg_df = pd.read_csv(input_path)
@@ -279,14 +273,26 @@ def main():
 	bader_df = collect_bader()
 
 	# Paste everything into single dataframe
+	print('Combining different charges into one table ... ')
 	constr_df = horton_df.loc[horton_df['Calculation Variant'] == 'constrained']
 	unconstr_df = horton_df.loc[horton_df['Calculation Variant'] == 'unconstrained']
 	collect_df = avg_df
 	collect_df = collect_df.append(constr_df, sort=False) 
 	collect_df = collect_df.append(unconstr_df, sort=False) 
 	collect_df = collect_df.append(bader_df, sort=False)
+	return collect_df
 
-	collect_df.to_csv('test.csv')
+def main():
+	"""Execute everything. """
+	print('This is {}.'.format(__file__))
+
+	# Setup the directory structure
+	out_path = create_dir()
+
+	# Collect Horton, Bader, Averaged charges into one dataframe
+	collect_df = collect_all()
+
+	print('Plotting ... ')
 
 	# Boxplot charges to get min/max errorbars
 	boxplot(collect_df, out_path=out_path)
@@ -300,9 +306,9 @@ def main():
 	# scatterplot_constraints(collect_df, out_path)
 
 	# Plot old charges vs new ones
-	old_charges = extract_init_charges(rtp_path='./md_simulation/n7nh2.rtp', df=avg_df)
+	# old_charges = extract_init_charges(rtp_path='./md_simulation/n7nh2.rtp', df=avg_df)
 	# Put both old and new charges in same table for comparison
-	merged_df = old_charges.merge(avg_df, how='inner', on=['atom', 'residue'])
+	# merged_df = old_charges.merge(avg_df, how='inner', on=['atom', 'residue'])
 	# Throw away unneccessary information
 	# merged_df = merged_df[['residue', 'atom', 'q_init', 'q']]
 	# Plot the old and new charges 
