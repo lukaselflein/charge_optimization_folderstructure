@@ -16,11 +16,20 @@ user@machine:~$ pip install --user smamp
 ```
 
 2. Module installation
-Alternatively, you can use the make_module.sh script to install & load it as a module
+Alternatively, you can install it as a module:
 ```bash
-user@machine:~$ bash make_module.sh
+user@machine:~$ mkdir ~/modulefiles
+user@machine:~$ cd ~/modulefiles
+user@machine:~$ git clone https://github.com/lukaselflein/smamp; cd smamp
+user@machine:~$ echo "#%Module1.0" > ~/modulefiles/smamp
+user@machine:~$ echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
 ```
 
+Remember to add it to and load from your modulefiles:
+```bash
+user@machine:~$ module use ~/modulefiles
+user@machine:~$ module load smamp
+```
 3. Use Lukas' local version
 ```bash
 user@machine:~$ module use /home/fr/fr_fr/fr_le1019/modulefiles
@@ -36,8 +45,12 @@ The folders are organized in four levels:
 <img src="./.pictures/folder_hierarchy.png" width="400px">
 
 ### Content
-`bin`: Bash and python scripts for fitting, conversion, extracting, and visualization
-`simulation_template`: The full template simulation folder structure.
+`Readme.md`: The Readme you are reading right now.
+`bin`: Bash and python scripts for fitting, conversion, extracting, and visualization.
+`preprocessing.sh`: BASH Commands for preprocessing the input up to and including the DFT calculations.
+`postprocessing.sh`: BASH commands to extract densities, calculate and visualize charges.
+`.pictures`: Pictures for the Readme.
+`.simulation_template`: The full template simulation folder structure.
 
 ### Usage
 Copy the `simulation_template` folder structure, and rename to a specific simulation name, e.g. `simulation-1.0-a`. 
