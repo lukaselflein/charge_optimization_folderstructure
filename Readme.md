@@ -51,6 +51,13 @@ The Project is organized in multiple levels:
 
 ### Usage Example
 If you have done all the prerequisite steps, you can start an automated charge optimization.
+#### Clone a fresh copy from github
+```bash
+user@machine:~$ git clone https://github.com/lukaselflein/charge_optimization_folderstructure
+user@machine:~$ mv charge_optimization_folderstructure/ example/
+```
+It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
+
 #### Create your first charge cycle
 ```bash
 user@machine:~$ cp -r .template_simulation 1_charge_cycle 
