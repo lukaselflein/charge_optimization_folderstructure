@@ -3,18 +3,18 @@
 # Preprocessing and submission steps for charge optimization
 
 # Initialize the top level folder structure
-pwd
-cp -r .template_simulation 1_charge_cycle
-cd 1_charge_cycle
-pwd
+# pwd
+# cp -r .template_simulation 1_charge_cycle
+# cd 1_charge_cycle
+# pwd
 
 # Copy the GROMACS md_simulation output
 # Needed: .top, .tpr, .xtc
-mkdir md_simulation
-cp ../md_simulation_data/example.top md_simulation/
-cp ../md_simulation_data/example.tpr md_simulation/
-cp ../md_simulation_data/n7nh2.rtp   md_simulation/
-cp ../md_simulation_data/example.xtc md_simulation/
+# mkdir md_simulation
+# cp ../md_simulation_data/example.top md_simulation/
+# cp ../md_simulation_data/example.tpr md_simulation/
+# cp ../md_simulation_data/n7nh2.rtp   md_simulation/
+# cp ../md_simulation_data/example.xtc md_simulation/
 
 # Create the snapshots and subfolder structure
 module purge
