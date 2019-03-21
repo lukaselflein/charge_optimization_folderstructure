@@ -21,32 +21,32 @@ def main():
 		# Get the exact density file name
 		folder_path, file_name = os.path.split(path)
 		
-		# Assemble the shell command to bader
-		command = 'bader -p atom_index '
-		command += os.path.join(' ../2_dft_calculations/', file_name)
-
 		# Go to the bader directory to place the bader analysis output there	
 		topdir = os.path.split(folder_path)[0]
 		bader_dir = os.path.join(topdir, '5_bader_charges')
 		with cd(bader_dir):
+			print('Moving to {}'.format(bader_dir))
 
 			# Find structure and topology files of the same snapshot
-			snapshot_path = find(path='..', folder_keyword='initial', file_keyword='.pdb')
-			top_path = find(path='..', folder_keyword='initial', file_keyword='.top')
+			snapshot_path = find(path='..', folder_keyword='initial', 
+					     file_keyword='.pdb')[0]
+			top_path = find(path='..', folder_keyword='initial', file_keyword='.top')[0]
 
 			# Write output to logfile	
 			with open('bader.log', 'w') as logfile:
+				# Assemble the shell command bader
+				command = 'bader -p atom_index '
+				command += os.path.join(' ../2_dft_calculations/', file_name)
 				kwargs = {"shell": True, "stdout": logfile, "stderr": subprocess.STDOUT}
-				
 				# Execute the shell command
-				print('Executing bader in {}'.format(os.getcwd()))
+				print('Running bader ...')
 				p = subprocess.Popen(command, **kwargs)
 
 				# Wait for the shell command to finish
 				p.communicate()
 
 				# Extract charges from the bader anaylsis output to a .csv file
-				print('Extracting bader charges ...')
+				print('Bader done. Extracting bader charges ...')
 				smamp.extract_bader_charges.extract(snapshot_path, top_path)
 				print('Extraction done.')
 
