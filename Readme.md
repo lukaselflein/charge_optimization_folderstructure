@@ -48,7 +48,6 @@ The Project is organized in multiple levels:
 3. Snapshot: For every timestamp, a new directory is created. It contains folders for the different steps of the charge optimization workflow.
 <img src="./.pictures/folder_hierarchy.png" width="400px">
 
-
 ### Usage Example
 If you have done all the prerequisite steps, you can start an automated charge optimization.
 #### Clone a fresh copy from github
