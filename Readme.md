@@ -25,7 +25,8 @@ pip install --user smamp
 ```bash
 mkdir ~/modulefiles
 cd ~/modulefiles
-git clone https://github.com/lukaselflein/smamp; cd smamp
+git clone https://github.com/lukaselflein/smamp; 
+mv smamp/ smamp_scr; cd smamp_scr
 echo "#%Module1.0" > ~/modulefiles/smamp
 echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
 ```
