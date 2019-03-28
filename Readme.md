@@ -16,89 +16,95 @@ This repo contains scripts and a folderstructure to automate the calculation wor
 ### Prerequisites
 Some tools and often-reused snippets are outsourced into a pip package, [smamp](https://github.com/lukaselflein/smamp).
 Make sure you have the smamp module:
-1. Local installation
+1. Install the SMAMP module:
 ```bash
-user@machine:~$ pip install --user smamp
-```
-
-2. Alternatively, you can install it as a module:
-```bash
-user@machine:~$ mkdir ~/modulefiles
-user@machine:~$ cd ~/modulefiles
-user@machine:~$ git clone https://github.com/lukaselflein/smamp; cd smamp
-user@machine:~$ echo "#%Module1.0" > ~/modulefiles/smamp
-user@machine:~$ echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
+mkdir ~/modulefiles
+cd ~/modulefiles
+git clone https://github.com/lukaselflein/smamp; 
+mv smamp/ smamp_scr; cd smamp_scr
+echo "#%Module1.0" > ~/modulefiles/smamp
+echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
 ```
 
 Remember to add it to and load from your modulefiles:
 ```bash
-user@machine:~$ module use ~/modulefiles
-user@machine:~$ module load smamp
+module use ~/modulefiles
+module load smamp
 ```
-3. Use Lukas' local version
+2. Alternative, use Lukas' local version
 ```bash
-user@machine:~$ module use /home/fr/fr_fr/fr_le1019/modulefiles
-user@machine:~$ module load smamp
+module use /home/fr/fr_fr/fr_le1019/modulefiles
+module load smamp
 ```
 
-### Organization
+3. Alternative: pip installation
+If you don't want to load modules every time, install it via pip:
+```bash
+pip install --user smamp
+```
+
+### Structure
 The Project is organized in multiple levels:
 1. Highest: This is the current directory. Here, you can put the different self-consistent charge cycles, e.g. the first, second, .. iterations. Also, the folder with the calculation scripts `bin` is located on this level.
 2. Charge cycle: Here you will find the administrative scripts, for looping over the actual calculations. Also, the different snapshots are in seperate directories on this level.
 3. Snapshot: For every timestamp, a new directory is created. It contains folders for the different steps of the charge optimization workflow.
 <img src="./.pictures/folder_hierarchy.png" width="400px">
 
-
 ### Usage Example
 If you have done all the prerequisite steps, you can start an automated charge optimization.
 #### Clone a fresh copy from github
 ```bash
-user@machine:~$ git clone https://github.com/lukaselflein/charge_optimization_folderstructure
-user@machine:~$ mv charge_optimization_folderstructure/ example/
+PRROJECT_NAME='example'
+git clone https://github.com/lukaselflein/charge_optimization_folderstructure
+mv charge_optimization_folderstructure ${PRROJECT_NAME}
+cd ${PRROJECT_NAME}
 ```
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
+Clone a fresh copy from git everytime you try something new to get rid of old files.
 
 #### Create your first charge cycle
 Go into your fresh copy. Inside, copy the template folder:
 ```bash
-user@machine:~$ cp -r .template_simulation 1_charge_cycle 
-user@machine:~$ cd 1_charge_cycle
+cp -r .template_simulation 1_charge_cycle 
+cd 1_charge_cycle
 ```
-Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second ... iteration `2_charge_cycle`, you have an overview of all charge cycles side-by-side.
+Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second (third, ...) iteration `2_charge_cycle`(`n_charge_cycle`), you have an overview of all charge cycles side-by-side.
 
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
 ```bash
-user@machine:~$ mkdir md_simulation
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.top md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.tpr md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.xtc md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.rtp md_simulation/
+mkdir md_simulation
+cp PATH_TO_MD_SIMULATION/example.top md_simulation/
+cp PATH_TO_MD_SIMULATION/example.tpr md_simulation/
+cp PATH_TO_MD_SIMULATION/example.xtc md_simulation/
+cp PATH_TO_MD_SIMULATION/example.rtp md_simulation/
 ```
 
 #### Create the snapshots and subfolder structure
 If we want snapshots at time = 100 ps, 200 ps, ... 1000 ps:
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load gromacs/2016.4-gnu-5.2
-user@machine:~$ python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top md_simulation/example.top -xtc md_simulation/example.xtc -s 100 -d 100 -e 1000
+module purge
+module load gromacs/2016.4-gnu-5.2
+module load devel/python/3.6.5
+module load smamp
+python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top md_simulation/example.top -xtc md_simulation/example.xtc -s 100 -d 100 -e 1000
 ```
 
 #### Convert UA to AA
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load gromacs/2016.4-gnu-5.2
-user@machine:~$ module load matscipy/0.2.0
-user@machine:~$ module load smamp
-user@machine:~$ python loop_convert_UA_to_AA.py
+module purge
+module load gromacs/2016.4-gnu-5.2
+module load devel/python/3.6.5
+module load smamp
+python loop_convert_UA_to_AA.py
 ```
 
 #### Submit gpaw optimization, ESP & Rho job
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load devel/python/3.6.5
-user@machine:~$ module load smamp
-user@machine:~$ python loop_submit.py
+module purge
+module load devel/python/3.6.5
+module load smamp
+python loop_submit.py
 ```
 Now you will have to wait for the DFT calculations to finish.
 
