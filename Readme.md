@@ -65,7 +65,7 @@ Go into your fresh copy. Inside, copy the template folder:
 cp -r .template_simulation 1_charge_cycle 
 cd 1_charge_cycle
 ```
-Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second ... iteration `2_charge_cycle`, you have an overview of all charge cycles side-by-side.
+Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second (third, ...) iteration `2_charge_cycle`(`n_charge_cycle`), you have an overview of all charge cycles side-by-side.
 
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
