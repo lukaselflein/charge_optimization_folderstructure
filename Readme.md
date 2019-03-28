@@ -73,12 +73,11 @@ Now you can work on this first cycle. If you repeat this step after the first cy
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
 ```bash
-PATH_TO_MD_SIMULATION='.'
 mkdir md_simulation
-cp $(PATH_TO_MD_SIMULATION)/example.top md_simulation/
-cp $(PATH_TO_MD_SIMULATION)/example.tpr md_simulation/
-cp $(PATH_TO_MD_SIMULATION)/example.xtc md_simulation/
-cp $(PATH_TO_MD_SIMULATION)/example.rtp md_simulation/
+cp PATH_TO_MD_SIMULATION/example.top md_simulation/
+cp PATH_TO_MD_SIMULATION/example.tpr md_simulation/
+cp PATH_TO_MD_SIMULATION/example.xtc md_simulation/
+cp PATH_TO_MD_SIMULATION/example.rtp md_simulation/
 ```
 
 #### Create the snapshots and subfolder structure
