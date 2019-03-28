@@ -169,7 +169,7 @@ def main():
 	# Create a folder for the averaged cost function
 	chargepath = './horton_charges'
 	if os.path.isdir(chargepath):
-		os.rmdir(chargepath)
+		shutil.rmtree(chargepath)
 	os.mkdir(chargepath)
 
 	# Find the locations of the cost function files
