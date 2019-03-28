@@ -23,22 +23,22 @@ user@machine:~$ pip install --user smamp
 
 2. Alternatively, you can install it as a module:
 ```bash
-user@machine:~$ mkdir ~/modulefiles
-user@machine:~$ cd ~/modulefiles
-user@machine:~$ git clone https://github.com/lukaselflein/smamp; cd smamp
-user@machine:~$ echo "#%Module1.0" > ~/modulefiles/smamp
-user@machine:~$ echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
+mkdir ~/modulefiles
+cd ~/modulefiles
+git clone https://github.com/lukaselflein/smamp; cd smamp
+echo "#%Module1.0" > ~/modulefiles/smamp
+echo "prepend-path PYTHONPATH $(pwd)" >> ~/modulefiles/smamp
 ```
 
 Remember to add it to and load from your modulefiles:
 ```bash
-user@machine:~$ module use ~/modulefiles
-user@machine:~$ module load smamp
+module use ~/modulefiles
+module load smamp
 ```
 3. Use Lukas' local version
 ```bash
-user@machine:~$ module use /home/fr/fr_fr/fr_le1019/modulefiles
-user@machine:~$ module load smamp
+module use /home/fr/fr_fr/fr_le1019/modulefiles
+module load smamp
 ```
 
 ### Organization
@@ -68,36 +68,36 @@ Now you can work on this first cycle. If you repeat this step after the first cy
 #### Copy MD simulation files
 We need the trajectory, etc. in our optimization folderstructure. Copy them into `md_simulation`:
 ```bash
-user@machine:~$ mkdir md_simulation
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.top md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.tpr md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.xtc md_simulation/
-user@machine:~$ cp PATH_TO_MD_SIMULATION/example.rtp md_simulation/
+mkdir md_simulation
+cp PATH_TO_MD_SIMULATION/example.top md_simulation/
+cp PATH_TO_MD_SIMULATION/example.tpr md_simulation/
+cp PATH_TO_MD_SIMULATION/example.xtc md_simulation/
+p PATH_TO_MD_SIMULATION/example.rtp md_simulation/
 ```
 
 #### Create the snapshots and subfolder structure
 If we want snapshots at time = 100 ps, 200 ps, ... 1000 ps:
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load gromacs/2016.4-gnu-5.2
-user@machine:~$ python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top md_simulation/example.top -xtc md_simulation/example.xtc -s 100 -d 100 -e 1000
+module purge
+module load gromacs/2016.4-gnu-5.2
+python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top md_simulation/example.top -xtc md_simulation/example.xtc -s 100 -d 100 -e 1000
 ```
 
 #### Convert UA to AA
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load gromacs/2016.4-gnu-5.2
-user@machine:~$ module load matscipy/0.2.0
-user@machine:~$ module load smamp
-user@machine:~$ python loop_convert_UA_to_AA.py
+module purge
+module load gromacs/2016.4-gnu-5.2
+module load matscipy/0.2.0
+module load smamp
+python loop_convert_UA_to_AA.py
 ```
 
 #### Submit gpaw optimization, ESP & Rho job
 ```bash
-user@machine:~$ module purge
-user@machine:~$ module load devel/python/3.6.5
-user@machine:~$ module load smamp
-user@machine:~$ python loop_submit.py
+module purge
+module load devel/python/3.6.5
+module load smamp
+python loop_submit.py
 ```
 Now you will have to wait for the DFT calculations to finish.
 
