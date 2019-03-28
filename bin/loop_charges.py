@@ -43,7 +43,6 @@ def calc_charges(subdir, qtot=0):
 		kwargs = {"shell": True, "stdout": logfile, "stderr": subprocess.STDOUT}
 		# Execute the command
 		p = subprocess.Popen(command, **kwargs).communicate()
-	print(p)
 
 def main():
 	""" Execute everything."""
@@ -56,7 +55,7 @@ def main():
 	print('Current working dir: {}'.format(topdir))
 	
 	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk(topdir)):
+	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
 		if 'template' in subdir or 'exclude' in subdir:
