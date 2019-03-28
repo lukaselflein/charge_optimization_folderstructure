@@ -5,6 +5,7 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 """
 
 import os
+import sys
 import smamp
 import subprocess
 
