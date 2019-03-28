@@ -85,6 +85,7 @@ If we want snapshots at time = 100 ps, 200 ps, ... 1000 ps:
 ```bash
 module purge
 module load gromacs/2016.4-gnu-5.2
+module load smamp
 python create_snapshots_from_trajectory.py -tpr md_simulation/example.tpr -top md_simulation/example.top -xtc md_simulation/example.xtc -s 100 -d 100 -e 1000
 ```
 
