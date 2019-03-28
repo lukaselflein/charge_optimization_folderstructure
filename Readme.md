@@ -16,12 +16,7 @@ This repo contains scripts and a folderstructure to automate the calculation wor
 ### Prerequisites
 Some tools and often-reused snippets are outsourced into a pip package, [smamp](https://github.com/lukaselflein/smamp).
 Make sure you have the smamp module:
-1. Local installation
-```bash
-pip install --user smamp
-```
-
-2. Alternatively, you can install it as a module:
+1. Install the SMAMP module:
 ```bash
 mkdir ~/modulefiles
 cd ~/modulefiles
@@ -36,13 +31,19 @@ Remember to add it to and load from your modulefiles:
 module use ~/modulefiles
 module load smamp
 ```
-3. Use Lukas' local version
+2. Alternative, use Lukas' local version
 ```bash
 module use /home/fr/fr_fr/fr_le1019/modulefiles
 module load smamp
 ```
 
-### Organization
+3. Alternative: pip installation
+If you don't want to load modules every time, install it via pip:
+```bash
+pip install --user smamp
+```
+
+### Structure
 The Project is organized in multiple levels:
 1. Highest: This is the current directory. Here, you can put the different self-consistent charge cycles, e.g. the first, second, .. iterations. Also, the folder with the calculation scripts `bin` is located on this level.
 2. Charge cycle: Here you will find the administrative scripts, for looping over the actual calculations. Also, the different snapshots are in seperate directories on this level.
