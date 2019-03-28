@@ -54,7 +54,10 @@ The Project is organized in multiple levels:
 If you have done all the prerequisite steps, you can start an automated charge optimization.
 #### Clone a fresh copy from github
 ```bash
+PRROJECT_NAME='example'
 git clone https://github.com/lukaselflein/charge_optimization_folderstructure
+mv charge_optimization_folderstructure ${PRROJECT_NAME}
+cd ${PRROJECT_NAME}
 ```
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
 Clone a fresh copy from git everytime you try something new to get rid of old files.
