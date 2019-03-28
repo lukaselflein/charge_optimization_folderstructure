@@ -31,14 +31,17 @@ def main():
 			# Find structure and topology files of the same snapshot
 			snapshot_path = find(path='..', folder_keyword='initial', 
 					     file_keyword='.pdb')[0]
-			top_path = find(path='..', folder_keyword='initial', file_keyword='.top')[0]
+			top_path = find(path='..', folder_keyword='initial', 
+					file_keyword='.top')[0]
 
 			# Write output to logfile	
 			with open('bader.log', 'w') as logfile:
 				# Assemble the shell command bader
 				command = 'bader -p atom_index '
-				command += os.path.join(' ../2_dft_calculations/', file_name)
-				kwargs = {"shell": True, "stdout": logfile, "stderr": subprocess.STDOUT}
+				command += os.path.join(' ../2_dft_calculations/', 
+							file_name)
+				kwargs = {"shell": True, "stdout": logfile, 
+					  "stderr": subprocess.STDOUT}
 				# Execute the shell command
 				print('Running bader ...')
 				p = subprocess.Popen(command, **kwargs)
@@ -46,9 +49,10 @@ def main():
 				# Wait for the shell command to finish
 				p.communicate()
 
-				# Extract charges from the bader anaylsis output to a .csv file
+				# Extract charges from the bader anaylsis output to .csv
 				print('Bader done. Extracting bader charges ...')
-				smamp.extract_bader_charges.extract(snapshot_path, top_path)
+				smamp.extract_bader_charges.extract(snapshot_path,
+								    top_path)
 				print('Extraction done.')
 
 	print('Done.')
