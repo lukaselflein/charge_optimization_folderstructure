@@ -18,7 +18,7 @@ Some tools and often-reused snippets are outsourced into a pip package, [smamp](
 Make sure you have the smamp module:
 1. Local installation
 ```bash
-user@machine:~$ pip install --user smamp
+pip install --user smamp
 ```
 
 2. Alternatively, you can install it as a module:
@@ -52,16 +52,16 @@ The Project is organized in multiple levels:
 If you have done all the prerequisite steps, you can start an automated charge optimization.
 #### Clone a fresh copy from github
 ```bash
-user@machine:~$ git clone https://github.com/lukaselflein/charge_optimization_folderstructure
-user@machine:~$ mv charge_optimization_folderstructure/ example/
+git clone https://github.com/lukaselflein/charge_optimization_folderstructure
+mv charge_optimization_folderstructure/ example/
 ```
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
 
 #### Create your first charge cycle
 Go into your fresh copy. Inside, copy the template folder:
 ```bash
-user@machine:~$ cp -r .template_simulation 1_charge_cycle 
-user@machine:~$ cd 1_charge_cycle
+cp -r .template_simulation 1_charge_cycle 
+cd 1_charge_cycle
 ```
 Now you can work on this first cycle. If you repeat this step after the first cycle is finished, for the second ... iteration `2_charge_cycle`, you have an overview of all charge cycles side-by-side.
 
