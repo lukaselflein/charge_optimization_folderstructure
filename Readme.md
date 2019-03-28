@@ -55,9 +55,9 @@ If you have done all the prerequisite steps, you can start an automated charge o
 #### Clone a fresh copy from github
 ```bash
 git clone https://github.com/lukaselflein/charge_optimization_folderstructure
-mv charge_optimization_folderstructure/ example/
 ```
 It is probably a good idea to name this folder according to what you want to archieve, e.g., `example`, `convergence study`, etc.
+Clone a fresh copy from git everytime you try something new to get rid of old files.
 
 #### Create your first charge cycle
 Go into your fresh copy. Inside, copy the template folder:
