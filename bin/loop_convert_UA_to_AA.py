@@ -51,7 +51,7 @@ def main():
 	for subdir, dirs, files in sorted(os.walk(topdir)):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folders with AA structures in them
