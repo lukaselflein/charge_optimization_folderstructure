@@ -115,6 +115,9 @@ If you want to automate all of the above steps, you can edit the `preprocessing.
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
 Plots are automatically generated in `images`.
 
+### Unconverged Snapshots
+Snapshots failing to converge in the DFT calculation step can be excluded by deleting their folders, or renaming their folders '...exclude...', e.g., `300_ps_snapshot_exclude`.
+
 ### Content
 * `Readme.md`: The Readme you are reading right now.
 * `bin`: Bash and python scripts for fitting, conversion, extracting, and visualization.
