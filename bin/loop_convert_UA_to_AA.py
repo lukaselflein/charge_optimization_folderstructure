@@ -11,8 +11,10 @@ import argparse
 import smamp
 
 from smamp.tools import cd
+from smamp.tools import read_atom_numbers
 
-def convert(subdir):
+
+def convert(subdir, hydrogen_per_atom):
 	"""Converts united atom files to all atom format."""
 	with cd(subdir):
 		# The UA file should be in ../0_initial_structure
@@ -28,7 +30,7 @@ def convert(subdir):
 				raise RuntimeError('Multiple snapshot.pdb files found.')
 
 		# Convert the united atoms file
-		smamp.convert_UA_to_AA.main()
+		smamp.convert_UA_to_AA.main(implicitHbondingPartners=hydrogen_per_atom)
 
 def cmd_parser():
 	"""Read Command line arguments."""
@@ -43,6 +45,9 @@ def main():
 	cmd_parser()
 	print('This is {}.'.format(__file__))
 
+	# Read number of hydrogen per atom from configuration file table
+	hydrogen_per_atom = read_atom_numbers()
+
 	print('Current working dir: {}'.format(os.getcwd()))
 	
 	# Crawl the directory structure
@@ -55,7 +60,7 @@ def main():
 		# Select the folders with AA structures in them
 		if 'all_atom_structure' in subdir:
 			print('Moving to {}'.format(subdir))
-			convert(subdir)
+			convert(subdir, hydrogen_per_atom)
 
 
 if __name__ == '__main__':

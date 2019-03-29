@@ -28,7 +28,9 @@ import pandas as pd
 import ase.io
 import parmed as pmd
 from parmed import gromacs
+
 from smamp.insertHbyList import insertHbyList
+from smamp.tools import read_atom_numbers
 
 
 
@@ -753,7 +755,8 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     infile_atoms_in_cg_csv, infile_cg_charges_csv, 
     infile_atoms_of_same_charge_csv,
     qtot = 0.0, strip_string=':SOL,CL', 
-    implicitHbondingPartners = {'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2},
+
+    implicitHbondingPartners = None,
     debug=False, outfile_top = None, outfile_csv = None):
     
     """
@@ -794,7 +797,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
         Groups to remove from the initally imported topology in ParmEd.
         ':SOL,CL' by default (solvent and chlorine ions).
     implicitHbondingPartners: dict of str: int
-        By default "{'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}"
+        By default loaded from a table."
         Specifies which atoms have (how many) implicit hydrogens around them.
         These hydrogens must equal those used in QM calculations.
     debug: bool
@@ -818,6 +821,9 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     logging.info("#################")    
     logging.info("fitESPconstrained")            
     logging.info("#################")   
+
+    if implicitHbondingPartners is None:
+        implicitHbondingPartners = read_atom_numbers()
 
     # A: construct all-atom representation from united-atom structure and topology:
     ua_ase_struct = ase.io.read(infile_pdb)
@@ -1215,10 +1221,10 @@ def main():
     parser.add_argument('--qtot', '-q', default=0.0, type=float,
         help='The total charge of the system. [default=%(default)s]')
     parser.add_argument('--insertion-rules','-i',
-        default="{'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}",
+        default=None,
         help="A string representation of a python dictionary, describing how "
         "many implicit hydrogens have been inserted at which atom."
-        "Example and default: "
+        "Example: "
         "{'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}")
     parser.add_argument('-v','--verbose', action='store_true',
         help="Prints a lot of information.")
@@ -1230,10 +1236,11 @@ def main():
     else:
         loglevel = logging.WARNING
 
+    if args.insertion_rules is None:
+	    implicitHbondingPartners = read_atom_numbers()
+
     logging.basicConfig(stream=sys.stdout, level=loglevel)  
     logging.info('Using replacement rules "{}"...'.format(args.insertion_rules))
-    
-    implicitHbondingPartners = ast.literal_eval(args.insertion_rules)
    
     #q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase
     q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase = \
