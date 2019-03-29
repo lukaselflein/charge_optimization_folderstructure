@@ -10,8 +10,9 @@ from ase.io import write
 
 from gpaw import GPAW
 from gpaw import restart
+from gpaw import FermiDirac
+from gpaw import Mixer
 
-from gpaw import GPAW
 from ase.optimize.bfgslinesearch import BFGSLineSearch #Quasi Newton
 from ase.units import Bohr
 from ase.units import Hartree
@@ -56,7 +57,9 @@ def minimize_energy(traj_file):
 	struc.center()
 	# Define gpaw convergence&simulation parameters
 	calc  = GPAW(xc='PBE', h=0.2, charge=0,
-		     spinpol=True, convergence={'energy': 0.001})
+		     spinpol=True, convergence={'energy': 0.001},
+		     mixer=Mixer(beta=0.25, nmaxold=10, weight=1.0),
+		     occupations=FermiDirac(width=0.1)))
 	struc.set_calculator(calc)
 	dyn = BFGSLineSearch(struc, trajectory='molecule.traj',
 			     restart='bfgs_ls.pckl', logfile='BFGSLinSearch.log')
