@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def create_dir(path='./pictures'):
+	"""Create new folder for pictures if it does not exist yet."""
 	if os.path.isdir(path):
 		return path
 
@@ -20,6 +21,7 @@ def create_dir(path='./pictures'):
 
 
 def extract_init_charges(rtp_path, df):
+	"""Extract charges from rtp file"""
         atom_names = df.atom.unique()
         residuum_names = df.residue.unique()
         charges = pd.DataFrame()
@@ -92,7 +94,7 @@ def scatterplot_comparison(df, out_path, x_name='q', y_name='q_init'):
 	plt.clf()
 
 def scatterplot_constraints(df, out_path, x_name='q', y_name='q_unconstrained'):
-	"""Plot the effect of contraints"""
+	"""Plot the effect of contraints in scatterplot"""
 	fgrid, ax = generic_scatterplot(df, x_name, y_name)
 	title = 'Effect of constraints on charges'
 	fgrid.fig.suptitle(title)
@@ -226,7 +228,7 @@ def make_edgecolor(ax):
 			line.set_mec(col)
 
 def boxplot(df, out_path):
-	""" Boxplot."""
+	""" Plot charges calculated under different conditions in one boxplot."""
 	fig = plt.figure(figsize=(16,10))
 
 	# Individual horton charges
