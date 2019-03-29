@@ -5,7 +5,7 @@
 # Convert AA to UA
 module purge
 module load gromacs 2>.module_load.log
-module load matscipy/0.2.0 2>.module_load.log
+module load devel/python/3.6.5
 module load smamp
 python loop_convert_AA_to_UA.py
 # Output: esp_ua.cube, rho_ua.cube

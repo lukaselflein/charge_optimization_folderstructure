@@ -5,50 +5,31 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 """
 
 import os
-from smamp.tools import cd
 import smamp
+from smamp.tools import cd
+from smamp.tools import find
+
 
 def convert(subdir):
-	"""
-	Converts united atom files to all atom format.
-	"""
+	"""Convert united atom files to all atom format."""
 	with cd(subdir):
-		# The original UA file should be in ../0_initial_structure
-		init_path = '../0_initial_structure'
-		# The DFT files should be in ../2_dft_calculations
-		dft_path = '../2_dft_calculations'
-		for name in ('.pdb', '.top'):
-			for subdir, dirs, files in os.walk(init_path):
-				# Check if at least one file exists
-				if sum([name in f for f in files]) < 1:
-					print(os.getcwd())
-					raise RuntimeError('No {} file found.'.format(name))
-				# No more than one file must exists for uniqueness
-				if sum([name in f for f in files]) > 2:
-					print(os.getcwd())
-					raise RuntimeError('Multiple {} files found.'.format(name))
+		pdb_path = find(path='..', folder_keyword='initial', 
+			        file_keyword='.pdb')[0]
+		top_path = find(path='..', folder_keyword='initial', 
+				file_keyword='.top')[0]
 
-		name = '.cube'
-		for subdir, dirs, files in os.walk(dft_path):
-			# Check if at least one file exists
-			if sum([name in f for f in files]) < 2:
-				print(os.getcwd())
-				print(dirs, files)
-				raise RuntimeError('Not enough {} files found.'.format(name))
-			# No more than one file must exists for uniqueness
-			if sum([name in f for f in files]) > 3:
-				print(os.getcwd())
-				print(dirs, files)
-				raise RuntimeError('Too many {} files found.'.format(name))
+		for dft_type in ('esp', 'rho'):
+			dft_path = find(path='..', folder_keyword='dft_calculations', 
+					file_keyword='{}.cube'.format(dft_type))[0]
 
-		for dft_file in ('esp.cube', 'rho.cube'):
-			out_file = dft_file[:3] + '_ua' + dft_file[3:]
-			kwargs = {'infile_pdb': os.path.join(init_path, 'snapshot.pdb'),
-				  'infile_top': os.path.join(init_path, 'example.top'),
-				  'infile_cube': os.path.join(dft_path, dft_file),
+			out_file = dft_type + '_ua' + '.cube'
+			kwargs = {'infile_pdb': pdb_path,
+				  'infile_top': top_path,
+				  'infile_cube': dft_path,
 				  'outfile_cube': out_file}
 
 			smamp.aa2ua_cube.aa2ua_cube(**kwargs)
+
 
 def main():
 	"""Execute everything."""

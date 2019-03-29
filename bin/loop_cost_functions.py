@@ -20,7 +20,8 @@ def calc_cost_function(path):
 	overwrite = "--overwrite "
 
 	# Build the command
-	command += esp_file + output_file + density_file + boundary_option + sign_option + overwrite
+	command += esp_file + output_file + density_file 
+	command += boundary_option + sign_option + overwrite
 
 	# Execute the command
 	# print("Executing: \n{}".format(command))
@@ -35,12 +36,10 @@ def calc_cost_function(path):
 
 def main():
 	""" Execute everything."""
-	print(__doc__)
-
-	topdir = '.'
+	print('This is {}.'.format(__file__))
 
 	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk(topdir)):
+	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
 		if 'template' in subdir or 'exclude' in subdir:
@@ -61,7 +60,7 @@ def main():
 					logfile.write(warning + '\n')
 				continue
 
-			# Only if all files exist, start the calculation
+			# Start the calculation only if all files exist
 			elif warning is None:
 				# print('Calculating: {}'.format(subdir))
 				with cd(subdir):
