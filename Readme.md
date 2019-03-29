@@ -113,6 +113,10 @@ If you want to automate all of the above steps, you can edit the `preprocessing.
 
 ### Postprocessing
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
+```bash
+cd charge_optimization_folderstructure/1_charge_cycle
+bash ../postprocessing.sh
+```
 Plots are automatically generated in `images`.
 
 ### Unconverged Snapshots
