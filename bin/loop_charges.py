@@ -14,8 +14,7 @@ import subprocess
 from smamp.tools import cd
 
 def calc_charges(subdir, qtot=0):
-	""" 
-	Calculates HORTON charges for one cost function. 
+	"""Calculates HORTON charges for one cost function. 
 
 	A call to `fitESPconstrained.py` is assembled via path-strings, and executed.
 	"""
