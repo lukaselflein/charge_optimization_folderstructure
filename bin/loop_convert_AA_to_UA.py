@@ -6,12 +6,33 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 
 import os
 import smamp
+import pandas as pd
+
 from smamp.tools import cd
 from smamp.tools import find
+
+def read_atom_numbers(path='../fitting_constraint_files/hydrogen_per_atom.csv'):
+	"""Determines number of explicit Hydrogen atoms per Carbon from a table.
+	Arguments
+	path: Path to the table.
+
+	Returns:
+	hydrogen_per_atom: dictionary mapping atom names to number of hydrogens to insert.
+	"""
+	df = pd.read_csv(path)
+	df = df.set_index('atom', drop=True)
+	# target = {'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}
+	hydrogen_per_atom = df.to_dict()[df.columns[0]]
+
+	return hydrogen_per_atom
 
 
 def convert(subdir):
 	"""Convert united atom files to all atom format."""
+
+	# Get substition numbers from table
+	hydrogen_per_atom = read_atom_numbers()
+	
 	with cd(subdir):
 		pdb_path = find(path='..', folder_keyword='initial', 
 			        file_keyword='.pdb')[0]
@@ -26,8 +47,10 @@ def convert(subdir):
 			kwargs = {'infile_pdb': pdb_path,
 				  'infile_top': top_path,
 				  'infile_cube': dft_path,
-				  'outfile_cube': out_file}
+				  'outfile_cube': out_file,
+				  'implicitHbondingPartners': hydrogen_per_atom}
 
+			# Call Johannes' conversion script
 			smamp.aa2ua_cube.aa2ua_cube(**kwargs)
 
 
@@ -50,4 +73,5 @@ def main():
 
 
 if __name__ == '__main__':
+	read_atom_numbers()
 	main()
