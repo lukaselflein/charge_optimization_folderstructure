@@ -109,7 +109,7 @@ python loop_submit.py
 Now you will have to wait for the DFT calculations to finish.
 
 ### Automation
-If you want to automate all of the above steps, you can edit the `preprocessing.sh` script. All the above commands are in there, and you can write your filenames and paths in there.
+If you want to automate all of the above steps, you can edit the `preprocessing.sh` script. All the above commands are in there, and you can excange the filenames and paths for your own.
 
 ### Postprocessing
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
