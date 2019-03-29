@@ -109,11 +109,18 @@ python loop_submit.py
 Now you will have to wait for the DFT calculations to finish.
 
 ### Automation
-If you want to automate all of the above steps, you can edit the `preprocessing.sh` script. All the above commands are in there, and you can write your filenames and paths in there.
+If you want to automate all of the above steps, you can edit the `preprocessing.sh` script. All the above commands are in there, and you can excange the filenames and paths for your own.
 
 ### Postprocessing
 The bash script `postprocessing.sh` should work out of the box, and calculate charges from the converged DFT calculations.
+```bash
+cd charge_optimization_folderstructure/1_charge_cycle
+bash ../postprocessing.sh
+```
 Plots are automatically generated in `images`.
+
+### Unconverged Snapshots
+Snapshots failing to converge in the DFT calculation step can be excluded by deleting their folders, or renaming their folders '...exclude...', e.g., `300_ps_snapshot_exclude`.
 
 ### Content
 * `Readme.md`: The Readme you are reading right now.

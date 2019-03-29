@@ -52,7 +52,7 @@ def minimize_energy(traj_file):
 	# Read in the trajectory file
 	struc = read(traj_file)
 	# Set up the box
-	struc.set_cell([25,25,25])
+	struc.set_cell([30,30,30])
 	struc.set_pbc([0,0,0])
 	struc.center()
 	# Define gpaw convergence&simulation parameters
