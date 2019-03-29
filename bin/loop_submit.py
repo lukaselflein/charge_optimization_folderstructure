@@ -9,9 +9,7 @@ import subprocess
 from smamp.tools import cd
 
 def check_existence(subdir):
-	"""
-	Check if all files needed for submission exist.
-	"""
+	"""Check if all files needed for submission exist."""
 	with cd(subdir):
 		# Submission files should be here
 		print([f for s, d, f in os.walk('.')])
@@ -25,9 +23,7 @@ def check_existence(subdir):
 	return None
 
 def submit(subdir):
-	"""
-	Submit the job description to the cluster queue.
-	"""
+	"""Submit the job description to the cluster queue."""
 	kwargs = {'stderr': subprocess.STDOUT, 'shell': True}
 	output = subprocess.check_output('msub submit_gpaw.sh', **kwargs)
 	print('Job submitted, queue response: {}'.format(output.decode('ascii')))

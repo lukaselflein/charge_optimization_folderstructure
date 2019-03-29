@@ -43,15 +43,13 @@ def main():
 	cmd_parser()
 	print('This is {}.'.format(__file__))
 
-	# Save the working dir
-	topdir = os.getcwd()
-	print('Current working dir: {}'.format(topdir))
+	print('Current working dir: {}'.format(os.getcwd()))
 	
 	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk(topdir)):
+	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
-		if 'template' in subdir:
+		if 'template' in subdir or 'exclude' in subdir:
 			continue
 
 		# Select the folders with AA structures in them
