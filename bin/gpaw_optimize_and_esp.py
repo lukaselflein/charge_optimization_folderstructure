@@ -137,9 +137,9 @@ def main():
 	traj_file, gpw_file, charge = parser()
 
 	# Use provided charge, or fallback to loading the charge from file
-	if charge is None:
+	if qtot is None:
 		print('No charge provided in command line arguments. Reading from default file ...')
-		charge = read_total_charge(path='../../../fitting_constraint_files/total_charge.csv')
+		qtot = read_total_charge(path='../../../fitting_constraint_files/total_charge.csv')
 	print('A total charge of {} is used.'.format(charge))
 
 	# Check if a restart file was provided
