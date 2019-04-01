@@ -37,6 +37,7 @@ def parser():
 
 	return traj_file, gpw_file
 
+
 def minimize_energy(traj_file):
 	"""
 	Run a BFGS energy minimization of the smamp molecule in vacuum.
@@ -75,10 +76,12 @@ def minimize_energy(traj_file):
 
 	return struc, calc
 
+
 def read_restart(gpw_file):
 	""" Extract the structure and calculation from a restart file."""
 	struc, calc = restart(gpw_file)
 	return struc, calc
+
 
 def extract(struc, calc):
 	"""
@@ -105,6 +108,7 @@ def extract(struc, calc):
 	rho_per_bohr_cube = rho * Bohr**3
 	write('rho.cube', struc, data=rho_per_bohr_cube) 
 
+
 def main():
 	"""Execute everything."""
 	print('This is {}.'.format(__file__))
@@ -113,13 +117,16 @@ def main():
 
 	# Check if a restart file was provided
 	if gpw_file is not None:
+		print('Restart file {} provided. Reading it ...'.format(gpw_file))
 		# If we have a restart file, use everything from it
 		struc, calc = read_restart(gpw_file)
 	
 	# Otherwise, we need to optimize based on our input file first.
 	else:
+		print('No restart file provided. Starting a new minimization ...')
 		struc, calc = minimize_energy(traj_file)
 
+	print('Minimization finished. Extracting ESP and Density ...')
 	# Now we can extract ESP, Rho, etc.
 	extract(struc, calc)
 	print('Done.')
