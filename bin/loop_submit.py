@@ -36,7 +36,7 @@ def main():
 	print('This is {}.'.format(__file__))
 
 	# Crawl the directory structure
-	for subdir, dirs, files in os.walk('.'):
+	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
 		if 'template' in subdir or 'exclude' in subdir:
