@@ -59,7 +59,7 @@ def minimize_energy(traj_file):
 	calc  = GPAW(xc='PBE', h=0.2, charge=0,
 		     spinpol=True, convergence={'energy': 0.001},
 		     mixer=Mixer(beta=0.25, nmaxold=10, weight=1.0),
-		     occupations=FermiDirac(width=0.1)))
+		     occupations=FermiDirac(width=0.1))
 	struc.set_calculator(calc)
 	dyn = BFGSLineSearch(struc, trajectory='molecule.traj',
 			     restart='bfgs_ls.pckl', logfile='BFGSLinSearch.log')
