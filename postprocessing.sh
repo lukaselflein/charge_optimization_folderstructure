@@ -59,5 +59,6 @@ python loop_bader.py
 # Plot charges
 module purge
 module load devel/python/3.6.5
+python charges.py
 python plot_charges.py
-# Output: scatter_q_unconstrained.png, scatter_before_after.png (in pictures/ )
+# Output: boxplot.png, pointplot_*.png (in plotting/ )
