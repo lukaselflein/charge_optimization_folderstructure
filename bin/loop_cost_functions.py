@@ -37,6 +37,7 @@ def calc_cost_function(path):
 def main():
 	""" Execute everything."""
 	print('This is {}.'.format(__file__))
+	print('Current working dir: {}'.format(os.getcwd()))
 
 	# Crawl the directory structure
 	for subdir, dirs, files in sorted(os.walk('.')):

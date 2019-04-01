@@ -25,12 +25,14 @@ import logging
 import numpy as np
 import pandas as pd
 
+import os
 import ase.io
 import parmed as pmd
 from parmed import gromacs
 
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
+from smamp.tools import read_total_charge
 
 
 
@@ -1218,7 +1220,7 @@ def main():
     parser.add_argument('outfile_csv', metavar='outfile.csv',
         help='Fitted charges will be written to a simple text file.')
     
-    parser.add_argument('--qtot', '-q', default=0.0, type=float,
+    parser.add_argument('--qtot', '-q', default=None, type=float,
         help='The total charge of the system. [default=%(default)s]')
     parser.add_argument('--insertion-rules','-i',
         default=None,
@@ -1230,6 +1232,13 @@ def main():
         help="Prints a lot of information.")
 
     args = parser.parse_args()
+
+    total_charge = args.qtot
+    # Use provided charge, or fallback to loading the charge from file
+    if total_charge is None:
+        print('No charge provided in command line arguments. Reading from default file ...')
+        total_charge = read_total_charge(path='../fitting_constraint_files/total_charge.csv')
+    print('A total charge of {} is used.'.format(total_charge))
     
     if args.verbose == True:
         loglevel = logging.DEBUG
@@ -1237,7 +1246,7 @@ def main():
         loglevel = logging.WARNING
 
     if args.insertion_rules is None:
-	    implicitHbondingPartners = read_atom_numbers()
+            implicitHbondingPartners = read_atom_numbers('../../../fitting_constraint_files/hydrogen_per_atom.csv')
 
     logging.basicConfig(stream=sys.stdout, level=loglevel)  
     logging.info('Using replacement rules "{}"...'.format(args.insertion_rules))
@@ -1250,7 +1259,7 @@ def main():
               infile_atoms_in_cg_csv = args.infile_atoms_in_cg_csv, 
               infile_cg_charges_csv = args.infile_cg_charges_csv, 
               infile_atoms_of_same_charge_csv = args.infile_atoms_of_same_charge_csv,
-              qtot = args.qtot, strip_string=':SOL,CL', 
+              qtot = total_charge, strip_string=':SOL,CL', 
               implicitHbondingPartners = implicitHbondingPartners, 
               debug = args.verbose, outfile_top=args.outfile_top,
               outfile_csv=args.outfile_csv)
