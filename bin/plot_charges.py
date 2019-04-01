@@ -21,7 +21,7 @@ def create_dir(path='./pictures'):
 
 
 def extract_init_charges(rtp_path, df):
-	"""Extract charges from rtp file"""
+        """Extract charges from rtp file"""
         atom_names = df.atom.unique()
         residuum_names = df.residue.unique()
         charges = pd.DataFrame()
@@ -135,7 +135,7 @@ def collect_bader():
 
 	# The table still contains redundant hydrogen atoms: 1CD3... 2CB3
 	# Delete everything containing '1C' or '2C'
-	print(coll_df[coll_df.atom.str.contains(r'[1-2]C')])
+	# print(coll_df[coll_df.atom.str.contains(r'[1-2]C')])
 	coll_df = coll_df.drop(coll_df[coll_df.atom.str.contains(r'[1-2]C')].index)
 
 	print('All collected. Transforming wide to long format ...')
