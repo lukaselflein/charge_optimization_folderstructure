@@ -7,15 +7,15 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 
 from ase.io import read
 from ase.io import write
+from ase.parallel import parprint
+from ase.optimize.bfgslinesearch import BFGSLineSearch
+from ase.units import Bohr
+from ase.units import Hartree
 
 from gpaw import GPAW
 from gpaw import restart
 from gpaw import FermiDirac
 from gpaw import Mixer
-
-from ase.optimize.bfgslinesearch import BFGSLineSearch #Quasi Newton
-from ase.units import Bohr
-from ase.units import Hartree
 
 import os.path
 import argparse
@@ -132,31 +132,31 @@ def extract(struc, calc):
 
 def main():
 	"""Execute everything."""
-	print('This is {}.'.format(__file__))
+	parprint('This is {}.'.format(__file__))
 	# Read Command line arguments	
 	traj_file, gpw_file, charge = parser()
 
 	# Use provided charge, or fallback to loading the charge from file
-	if qtot is None:
-		print('No charge provided in command line arguments. Reading from default file ...')
-		qtot = read_total_charge(path='../../../fitting_constraint_files/total_charge.csv')
-	print('A total charge of {} is used.'.format(charge))
+	if charge is None:
+		parprint('No charge provided in command line arguments. Reading from default file ...')
+		charge = read_total_charge(path='../../../fitting_constraint_files/total_charge.csv')
+	parprint('A total charge of {} is used.'.format(charge))
 
 	# Check if a restart file was provided
 	if gpw_file is not None:
-		print('Restart file {} provided. Reading it ...'.format(gpw_file))
+		parprint('Restart file {} provided. Reading it ...'.format(gpw_file))
 		# If we have a restart file, use everything from it
 		struc, calc = read_restart(gpw_file)
 	
 	# Otherwise, we need to optimize based on our input file first.
 	else:
-		print('No restart file provided. Starting a new minimization ...')
+		parprint('No restart file provided. Starting a new minimization ...')
 		struc, calc = minimize_energy(traj_file, charge)
 
-	print('Minimization finished. Extracting ESP and Density ...')
+	parprint('Minimization finished. Extracting ESP and Density ...')
 	# Now we can extract ESP, Rho, etc.
 	extract(struc, calc)
-	print('Done.')
+	parprint('Done.')
 
 
 if __name__ == '__main__':
