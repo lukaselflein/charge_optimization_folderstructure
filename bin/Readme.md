@@ -10,6 +10,7 @@ This way, updates to any of the code will be immediately distributed to all subf
 * `average_cost.py`: Average Cost Functions for Horton to determine Charges for Molecular Dynamics.
 * `charges_to_rtp.py`: Transfer Charges from CSV table to .rft file.
 * `convert_UA_to_AA.py`: Change structure with implicit Hydrogen to explicitely defined H-atoms.
+* `collect_charges.py`: Extract charges from output files and write them into a long-format table.
 * `create_snapshots_from_trajectory.py`: Create snapshots from trajectory, initialize folder structure 
 * `fitESPconstrained.py`: Fits (united-atom) point charges onto (all-atom) ESP obtained by 
 * `gpaw_optimize_and_esp.py`: Minimize the enegy of input structure and extract ESP. 
@@ -19,6 +20,6 @@ This way, updates to any of the code will be immediately distributed to all subf
 * `loop_convert_UA_to_AA.py`: Search for inital united atom structures, convert them to all atom format.
 * `loop_cost_functions.py`:  Find files and calculate cost functions.
 * `loop_submit.py`:  Search for inital united atom structures, convert them to all atom format.
-* `plot_charges.py`: Extract and plot charges obtained via HORTON.
-* `submit_gpaw.sh`: NEMO queue submission file for DFT calculations 
+* `plot_charges.py`: Plot charges with different constraint options from table.
+* `submit_gpaw.sh`: NEMO queue submission file for DFT calculations .
 
