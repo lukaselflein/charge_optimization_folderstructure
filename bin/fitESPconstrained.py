@@ -1223,11 +1223,8 @@ def main():
     parser.add_argument('--qtot', '-q', default=None, type=float,
         help='The total charge of the system. [default=%(default)s]')
     parser.add_argument('--insertion-rules','-i',
-        default=None,
-        help="A string representation of a python dictionary, describing how "
-        "many implicit hydrogens have been inserted at which atom."
-        "Example: "
-        "{'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}")
+        help="A file containing descriptions of how" 
+        "many implicit hydrogens have been inserted at which atom.")
     parser.add_argument('-v','--verbose', action='store_true',
         help="Prints a lot of information.")
 
@@ -1245,8 +1242,7 @@ def main():
     else:
         loglevel = logging.WARNING
 
-    if args.insertion_rules is None:
-            implicitHbondingPartners = read_atom_numbers('../../../fitting_constraint_files/hydrogen_per_atom.csv')
+    implicitHbondingPartners = read_atom_numbers(args.insertion_rules)
 
     logging.basicConfig(stream=sys.stdout, level=loglevel)  
     logging.info('Using replacement rules "{}"...'.format(args.insertion_rules))
