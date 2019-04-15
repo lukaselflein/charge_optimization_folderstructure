@@ -8,7 +8,7 @@ import os
 import pandas as pd
 
 
-def create_dir(path='./pictures'):
+def create_dir(path='./plotting'):
 	"""Create new folder for pictures if it does not exist yet."""
 	if os.path.isdir(path):
 		return path
