@@ -59,6 +59,6 @@ python loop_bader.py
 # Plot charges
 module purge
 module load devel/python/3.6.5
-python charges.py
+python collect_charges.py
 python plot_charges.py
 # Output: boxplot.png, pointplot_*.png (in plotting/ )
