@@ -60,6 +60,7 @@ def energy_plot(df, out_path):
 	lp = sns.lineplot('Step', 'Energy', data=df, hue='Timestamp', markers=True, legend='full')
 
 	lp.set_title('Energy convergence of the different snapshots')
+	plt.yscale('symlog')
 	lp.figure.savefig(os.path.join(out_path, 'energy_convergence.png'))
 	plt.cla()
 
