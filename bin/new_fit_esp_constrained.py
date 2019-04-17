@@ -82,12 +82,6 @@ def constrainedMinimize(A_matrix, b_vector, C_scalar, D_matrix = None,
     B: numpy.array
         array of horton and lagrange conditions
 
-    TODO
-    ----
-        --> check the Lagrange multipliers for consistency, e.g. too large
-            Lagrange multipliers can be a hint for not fulfilled constraints?!
-        --> for old numpy versions, version < 1.13.0, there is no np.block
-            Instead use np.bmat in the same way...
     """
     
 
