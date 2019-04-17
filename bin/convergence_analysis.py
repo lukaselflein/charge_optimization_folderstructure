@@ -55,12 +55,17 @@ def collect_bfgs_energies():
 	return coll_df
 
 
-def energy_plot(df, out_path):
+def energy_plot(df, out_path, log=False):
 	"""Lineplot of energy convergence."""
-	lp = sns.lineplot('Step', 'Energy', data=df, hue='Timestamp', markers=True, legend='full')
+	if log:
+		fig, ax = plt.subplots()
+		ax.set_yscale('symlog')
+		lp = sns.lineplot('Step', 'Energy', data=df, hue='Timestamp', legend='full', ax=ax)
+
+	else:
+		lp = sns.lineplot('Step', 'Energy', data=df, hue='Timestamp', legend='full')
 
 	lp.set_title('Energy convergence of the different snapshots')
-	plt.yscale('symlog')
 	lp.figure.savefig(os.path.join(out_path, 'energy_convergence.png'))
 	plt.cla()
 
@@ -81,6 +86,10 @@ def main():
 
 	print('Collecting BFGS files ...')
 	collect_df = collect_bfgs_energies()
+
+	if collect_df is None:
+		print('No BFGS file was found. Done.')
+		exit()
 
 	# Save long format dataset
 	print('Saving dataframe ...')
