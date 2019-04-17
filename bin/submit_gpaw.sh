@@ -53,7 +53,7 @@ echo "### Loading software necessary for gpaw:"
 echo " "
 
 module purge
-module load gpaw/1.3.0
+module load gpaw/1.3.0-ase-3.15.0-python-3.6.3
 module list
 
 echo "$MOAB_PROCCOUNT"
