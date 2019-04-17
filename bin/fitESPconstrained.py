@@ -2,22 +2,6 @@
 """ Fits (united-atom) point charges onto (all-atom) ESP obtained by 
     GPAW and HORTON under certain charge group and symmetry constraints 
     as required by GROMOS force fields """
-# script which should read in hortons old cost function and add new constraints
-
-# PLAN:
-# Write functions which read input files for constraints and use them to
-# construct the new cost function. DONE
-# After reading in and construction of the
-# cost function, solve it and return the fitted charges. DONE
-
-# ENHANCEMENT:
-# Check if the constraints are applied properly or if there occured an error. DONE
-# Check if the constraints are meaningfull or if they exclude each other...
-
-# TODO:
-# maybe write a function which can visualize the symmetry constraints
-# to proof the input. Highlight atoms which are constrained or sth.
-# like this. DONE IN TEXT FORM
 
 import warnings
 import logging
@@ -34,9 +18,6 @@ from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
 from smamp.tools import read_total_charge
 
-
-
-### Function definitions ###
 
 def unconstrainedMinimize(A_matrix, b_vector, C_scalar, debug = False):
     """
@@ -125,7 +106,6 @@ def constrainedMinimize(A_matrix, b_vector, C_scalar, D_matrix = None,
     if not isinstance(D_matrix,np.ndarray):
         D_matrix = np.atleast_2d( np.ones(N) )
         
-    #if debug:
     logging.debug("{:d} unknowns, {:d} equality constraints".format(N,M))
     logging.debug("A {}: \n {}".format(A_matrix.shape,A_matrix))
     logging.debug("B {}: \n {}".format(b_vector.shape,b_vector))
@@ -252,62 +232,6 @@ def constructPairwiseSymmetryConstraints(charges, N, symmetry=1.0, debug=False):
         
     D,q = concatenated_constraints(D,q)
     return D, q
-
-### old constructPairwiseSymmetryConstraints ###
-#def constructPairwiseSymmetryConstraints(charges, N, symmetry=1.0, debug=False):
-#    """
-#    Function to construct D_matrix and q_vector for a pairwise symmetry
-#
-#    Parameters:
-#    -----------
-#    charges: list of ints
-#        List of charge indices which should be equal. For more than two charges
-#        there will be (N-1) constraints for pairwise equal charges.
-#    N: int
-#        Total number of atoms in your system. Needed to fix the size of the
-#        D_matrix and q_vector to the system size (number of atoms)
-#    symmetry: int, -1 or 1
-#         1: the pairwise charges are equal (symmetric), q_1 = q_2
-#        -1: the pairwise charges are the negative of each other (antisymmetric),
-#            q_1 = -q_2
-#        default=1
-#    debug: bool
-#        True:  print debug information
-#        False: dont print debug information
-#        default=False
-#
-#    Return
-#    ------
-#    D: np.ndarray, dim=2
-#        D_matrix which carries the constraints of pairwise symmetric charges
-#    q: np.array
-#        q_vector carying the total charge of q_1+q_2 (always zero)
-#
-#    TODO
-#    ----
-#        implement 2D charge array such that one can input at once all pairwise
-#        symmetries with an symmetry array.
-#    """
-#    M = len(charges)-1
-#
-#    symmetry = symmetry*np.ones(M)
-#
-#    if debug:
-#        logging.info("{:d} unknowns, {:d} pairwise equality constraints".format(N,M))
-#        logging.info("symmetry list ({}):\n{}".format(symmetry.shape,symmetry))
-#
-#    D = np.atleast_2d(np.zeros((M,N)))
-#    q = np.atleast_1d(np.zeros(M))
-#    D[:,charges[0]] = 1
-#
-#    for j in range(M):
-#        D[j,charges[j+1]] = -1.0*symmetry[j]
-#
-#    if debug:
-#        logging.info("D ({}):\n{}".format(D.shape,D))
-#        logging.info("q ({}):\n{}".format(q.shape,q))
-#
-#    return D, q
 
 
 def constructChargegroupConstraints(chargeGroups, N, q=0, debug=False):
@@ -439,6 +363,12 @@ def read_AtomName_ChargeGroup(file_name, ase2pmd):
         more than one atom index and thus carry an ambiguous meaning.
     """
 
+    # If no constraints are given, we want to skip all of this
+    with open(file_name) as infile:
+        print(infile.read)
+        exit()
+	
+
     ase2pmd_df = pd.DataFrame(ase2pmd).T
     ase2pmd_df.columns = ['atom','residue']    
     
@@ -551,24 +481,6 @@ def read_SameChargedAtoms(file_name, ase2pmd):
                 
     logging.debug("")
     logging.debug("Constructing explicit symmetries.")
-    
-    # for i, group in sca_df.iterrows():
-    #    sca_sel = []
-    #    new_symmetry_group = []
-    #    for atom in group:
-    #        # Only selects first occurence of atom type on system
-    #        # and appends it to symmetry group selection, as all other 
-    #        # symmetries accross residues are enforced by implicity 
-    #        # name-wise constraints constructed above
-    #        sca_sel = ase2pmd_df[ase2pmd_df['atom'] == atom]
-    #        if not sca_sel.empty:
-    #            new_symmetry_group.append( sca_sel.index[0] )
-
-    #    if new_symmetry_group:
-    #        logging.info("Add explicit symmetry constraint for types {} "
-    #                "at ASE indices {}.".format(group.values,
-    #                            new_symmetry_group ))
-    #        sym2ase.append( np.array(new_symmetry_group) )  
     
     for i, group in sca_df.iterrows():
         sca_sel = ase2pmd_df['atom'].isin(group)
@@ -757,7 +669,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     infile_atoms_in_cg_csv, infile_cg_charges_csv, 
     infile_atoms_of_same_charge_csv,
     qtot = 0.0, strip_string=':SOL,CL', 
-
     implicitHbondingPartners = None,
     debug=False, outfile_top = None, outfile_csv = None):
     
@@ -1213,13 +1124,11 @@ def main():
         'str, str / [ atom name 1 ], [ atom name 2] will have the same charge. '
         'Apart from that, all atoms of the same name (but possibly spread over '
         'different residues) will have the same charge enforced.')  
-        
     parser.add_argument('outfile_top', nargs='?', metavar='outfile.top', 
         default=None, help="GROMACS .top output file"
         "with updated charges according to given .hdf5")
     parser.add_argument('outfile_csv', metavar='outfile.csv',
         help='Fitted charges will be written to a simple text file.')
-    
     parser.add_argument('--qtot', '-q', default=None, type=float,
         help='The total charge of the system. [default=%(default)s]')
     parser.add_argument('--insertion-rules','-i',
