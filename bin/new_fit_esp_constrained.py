@@ -1,18 +1,19 @@
 #!/usr/bin/env python
-""" Fits (united-atom) point charges onto (all-atom) ESP obtained by 
+"""Fits (united-atom) point charges onto (all-atom) ESP obtained by 
     GPAW and HORTON under certain charge group and symmetry constraints 
-    as required by GROMOS force fields """
+    as required by GROMOS force fields.
+Author: Johannes Hoermann
+Refactored: Lukas Elflein <elfleinl@tf.uni-freiburg.de> """
 
 import warnings
-import logging
-
-import numpy as np
-import pandas as pd
-
+import sys
+import ast
+import argparse
 import os
 import ase.io
 import parmed as pmd
-from parmed import gromacs
+import numpy as np
+import pandas as pd
 
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
@@ -46,11 +47,6 @@ def unconstrainedMinimize(A_matrix, b_vector, C_scalar, debug = False):
 
     npv = float(np.version.version[2:])
 
-    if debug:
-        logging.info("A {}: \n {}".format(A_matrix.shape,A_matrix))
-        logging.info("B {}: \n {}".format(b_vector.shape,b_vector))
-        logging.info("C {}: \n {}".format(C_scalar.shape,C_scalar))
- 
     A = A_matrix
     B = b_vector
     C = C_scalar
@@ -86,17 +82,8 @@ def constrainedMinimize(A_matrix, b_vector, C_scalar, D_matrix = None,
     B: numpy.array
         array of horton and lagrange conditions
 
-    TODO
-    ----
-        --> check the Lagrange multipliers for consistency, e.g. too large
-            Lagrange multipliers can be a hint for not fulfilled constraints?!
-        --> for old numpy versions, version < 1.13.0, there is no np.block
-            Instead use np.bmat in the same way...
     """
     
-    logging.debug("")
-    logging.debug("### constrainedMinimize ###")
-    logging.debug("")
 
     N = b_vector.shape[0]
     M = q_vector.shape[0]
@@ -106,15 +93,7 @@ def constrainedMinimize(A_matrix, b_vector, C_scalar, D_matrix = None,
     if not isinstance(D_matrix,np.ndarray):
         D_matrix = np.atleast_2d( np.ones(N) )
         
-    logging.debug("{:d} unknowns, {:d} equality constraints".format(N,M))
-    logging.debug("A {}: \n {}".format(A_matrix.shape,A_matrix))
-    logging.debug("B {}: \n {}".format(b_vector.shape,b_vector))
-    logging.debug("C {}: \n {}".format(C_scalar.shape,C_scalar))
-    logging.debug("D {}: \n {}".format(D_matrix.shape,D_matrix))
-    logging.debug("q {}: \n {}".format(q_vector.shape,q_vector))
     if npv < 13:
-        logging.info('\nWARNING:\n Your numpy version {} is old,\n I am falling from '
-            'np.block() back to np.bmat()\n\n'.format(np.version.version) )
         A = np.bmat([[ 2*np.atleast_2d(A_matrix), np.atleast_2d(D_matrix).T ],
                      [ np.atleast_2d(D_matrix), np.atleast_2d(np.zeros((M,M)))]])
 
@@ -126,29 +105,16 @@ def constrainedMinimize(A_matrix, b_vector, C_scalar, D_matrix = None,
             [ np.atleast_2d(D_matrix), np.atleast_2d(np.zeros((M,M)))])
         A = np.block( [ [ A_upper ], [ A_lower ] ] )
 
-    logging.debug("block A ({}): \n {}".format(A.shape,A))
-
     if npv < 13:
         B = np.bmat( [2*np.atleast_1d(b_vector), np.atleast_1d(q_vector)] ).T
 
     else:
         B = np.block( [2*np.atleast_1d(b_vector), np.atleast_1d(q_vector)] )
 
-    logging.debug("block B ({}): \n {}".format(B.shape,B))
-
     C = C_scalar
     
     rank_A = np.linalg.matrix_rank(A)
     rank_AB = np.linalg.matrix_rank(np.hstack((A,np.atleast_2d(B).T))) 
-    if rank_A == rank_AB:
-        logging.info("A rank == [A,B] rank == {:d}, solvable".format(rank_A))
-        if rank_A == A.shape[0]:
-            logging.info("A rank == A dim, unique solution exists.")
-        else:
-            logging.info("A rank < A dim {:d}, no unique solution.".format(A.shape[0]))
-    else:
-        logging.info("A rank {:d} != [A,B] rank {:d}, unsolvable".format(
-            rank_A, rank_AB))
 
     # What does numpy do for ambiguous systems?
     x = np.linalg.solve(A, B)
@@ -196,9 +162,6 @@ def constructPairwiseSymmetryConstraints(charges, N, symmetry=1.0, debug=False):
     """
 
    
-    logging.debug("")
-    logging.debug("### constructPairwiseSymmetryConstraints ###")
-    logging.debug("")
         
     #charges = np.atleast_2d(charges)
     #D = np.ones((1, N))
@@ -212,9 +175,6 @@ def constructPairwiseSymmetryConstraints(charges, N, symmetry=1.0, debug=False):
 
         #symmetry = symmetry*np.ones(M)
 
-        logging.debug("charge list ({}): {}".format(charge_list.shape,charge_list))
-        logging.debug("{:d} unknowns, {:d} pairwise equality constraints".format(N,M))
-        logging.debug("symmetry: {}".format(symmetry))
 
         D_single = np.atleast_2d(np.zeros((M,N)))
         q_single = np.atleast_1d(np.zeros(M))
@@ -222,9 +182,6 @@ def constructPairwiseSymmetryConstraints(charges, N, symmetry=1.0, debug=False):
 
         for j in range(M):
             D_single[j,charge_list[j+1]] = -1.0*symmetry
-
-        logging.debug("D_single ({}):\n{}".format(D_single.shape,D_single))
-        logging.debug("q_single ({}): {}".format(q_single.shape,q_single))
 
         #add up D_single and q_single to D and q
         D.append(D_single)
@@ -263,24 +220,16 @@ def constructChargegroupConstraints(chargeGroups, N, q=0, debug=False):
         q_vector carying the total charge of q_1+q_2 (always zero)
     """
 
-    logging.debug("")
-    logging.debug("### constructChargegroupConstraints ###")
-    logging.debug("")
-
     M = len(chargeGroups)
 
     q_vector = np.atleast_1d(q*np.ones(M))
 
-    logging.debug("{:d} unknowns, {:d} pairwise equality constraints".format(N,M))
 
     D_matrix = np.atleast_2d(np.zeros((M,N)))
     #q = np.atleast_2d(np.zeros(M))
 
     for j in range(M):
         D_matrix[j,chargeGroups[j]] = 1.0
-
-    logging.debug("D_matrix ({}):\n{}".format(D_matrix.shape, D_matrix))
-    logging.debug("q_vector ({}):\n{}".format(q_vector.shape, q_vector))
 
     return D_matrix, q_vector
 
@@ -363,12 +312,6 @@ def read_AtomName_ChargeGroup(file_name, ase2pmd):
         more than one atom index and thus carry an ambiguous meaning.
     """
 
-    # If no constraints are given, we want to skip all of this
-    with open(file_name) as infile:
-        print(infile.read)
-        exit()
-	
-
     ase2pmd_df = pd.DataFrame(ase2pmd).T
     ase2pmd_df.columns = ['atom','residue']    
     
@@ -447,8 +390,6 @@ def read_SameChargedAtoms(file_name, ase2pmd):
     sym2ase: list of list of int
         each sublist groups atoms of same charge by their ASE indices.
     """
-    logging.debug("")
-    logging.debug("### read_SameChargedAtoms ###")
     
     ase2pmd_df = pd.DataFrame(ase2pmd).T
     ase2pmd_df.columns = ['atom','residue']    
@@ -457,39 +398,21 @@ def read_SameChargedAtoms(file_name, ase2pmd):
 
     sym2ase = []
 
-    # constructs symmetries on atoms of same type across residues
-    # this will result in redundant constraints for symmetries 
-    # specidfied explicitly in input file for pairwise symmetries
-    # for now, we do not care about that
-    # TODO: reduce all (possibly recdundant) constraints into 
-    # a minimal set of unique ones
     
-    logging.debug("")
-    logging.debug("Constructing implict symmetries due to atom types.")
     unique_atoms = ase2pmd_df['atom'].unique()
     for a in unique_atoms:
         new_symmetry_group = ase2pmd_df[ ase2pmd_df['atom'] == a ]
         if not new_symmetry_group.empty:                                
             if len(new_symmetry_group.index.values) < 2:
-                logging.debug("Apparently, atom type {} only occurs once "
-                             "at ASE index {:d}. No symmetry constraint "
-                             "created.".format(a,new_symmetry_group.index.values[0]))
+                pass
             else:
-                logging.debug("Add symmetry constraint for atom type {} "
-                    "at ASE indices {}.".format(a,new_symmetry_group.index.values))
                 sym2ase.append(new_symmetry_group.index.values)   
                 
-    logging.debug("")
-    logging.debug("Constructing explicit symmetries.")
-    
     for i, group in sca_df.iterrows():
         sca_sel = ase2pmd_df['atom'].isin(group)
         new_symmetry_group = ase2pmd_df[sca_sel]
 
         if not new_symmetry_group.empty:                                
-            logging.debug("Add explicit symmetry constraint for types {} "
-                    "at ASE indices {}.".format(group.values,
-                        new_symmetry_group.index.values))
             sym2ase.append(new_symmetry_group.index.values)
             
     return sym2ase
@@ -559,11 +482,6 @@ def read_horton_cost_function(file_name, debug=False):
     B_horton = cost['B'][:]
     C_horton = cost['C'].value
     N_horton = cost['natom'].value
-    if debug:
-        logging.info("A: {}".format(A_horton))
-        logging.info("B: {}".format(B_horton))
-        logging.info("C: {}".format(C_horton))
-        logging.info("N: {}".format(N_horton))
 
     return A_horton, B_horton, C_horton, N_horton
 
@@ -593,77 +511,31 @@ def logResults(X,A,B,C,N):
     np.set_printoptions(precision=3)
     np.set_printoptions(suppress=True)
 
-    logging.info('charges {}:\n {}\ncharge sum = {}\n'.format( X[:N].T.shape,
-                                                        X[:N].T,
-                                                        X[:N].T.sum() ))
-    logging.info('Lagrange multipliers {}:\n {}'.format( X[N:].T.shape,
-                                                  X[N:].T ) )
-
-    ### test the results
-    logging.info( 'value of cost function: {}'.format(
-        (np.dot(X.T, np.dot(A, X)) - 2*np.dot(B.T, X) - C) ) )
-    
-    ### constraints fulfilled?
-    logging.info( "|D({}) x({}) - q({})| = {:e}".format(A[N:,:N].shape, X[:N].shape, B[N:].shape,
-        np.linalg.norm( np.dot(A[N:,:N],X[:N]) - B[N:] ) ) )
-    
 # check charge group constraints:
 def checkChargeGroups( df, cg2ase, cg2cgtype, cg2q,
     q_cols = ['q','q_unconstrained','q_qtot_constrained',
               'q_cg_qtot_constrained', 'q_sym_qtot_constrained']):
     
-    logging.info("")
-    logging.info("")
-    logging.info("##############################")    
-    logging.info("CHARGE GROUP CONSTRAINTS CHECK")            
-    logging.info("##############################")    
-    logging.info("")
-    logging.info("atoms grouped together by their ASE indices:")
-    logging.info("{}".format(cg2ase))    
-    logging.info("")
-    logging.info("desired charge of each group:")
-    logging.info("{}".format(cg2q))
-    
     for cg_index, ase_indices_in_cg in enumerate(cg2ase):
-        logging.info("cg {:d}, type {:d}:".format(cg_index,cg2cgtype[cg_index]))
         for q_col in q_cols:
             q_cg = df.iloc[ase_indices_in_cg][q_col].sum() # select first charge group
-            logging.info(
-                "    {:>30}:{:8.4f}    absolute error:{:12.4e}".format(
-                    q_col,q_cg,q_cg-cg2q[cg_index]))
             
 # check symmetry constraints:
 def checkSymmetries( df, sym2ase, 
     q_cols = ['q','q_unconstrained','q_qtot_constrained',
               'q_cg_qtot_constrained', 'q_sym_qtot_constrained']):
-    
-    logging.info("")    
-    logging.info("")
-    logging.info("##########################")    
-    logging.info("SYMMETRY CONSTRAINTS CHECK")            
-    logging.info("##########################")    
-    logging.info("")
-    logging.info("groups of equally charged atoms by their ASE indices:")
-    logging.info("{}".format(sym2ase))
-    
     for sym_index, ase_indices_in_sym in enumerate(sym2ase):
-        #logging.info("cg {:d}, type {:d}:".format(cg_index,cg2cgtype[cg_index]))
         msg = []
         for ase_index in ase_indices_in_sym:
                 msg.append("({}, {})".format(
                     df.iloc[ase_index]['atom'], 
                     df.iloc[ase_index]['residue']))
                            
-        logging.info("sym {:d}: {}".format(sym_index,"; ".join(msg)))
-              
         for q_col in q_cols:
             msg = []
             for ase_index in ase_indices_in_sym:
                 msg.append("{:.3f}".format(df.iloc[ase_index][q_col]))
-            logging.info("{:>30}: {}".format(q_col,",".join(msg)))    
             
-        logging.info("")
-
 
 def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5, 
     infile_atoms_in_cg_csv, infile_cg_charges_csv, 
@@ -730,10 +602,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     cg2q: list of float
     sym2ase: list of list of int
     """    
-    
-    logging.info("#################")    
-    logging.info("fitESPconstrained")            
-    logging.info("#################")   
 
     if implicitHbondingPartners is None:
         implicitHbondingPartners = read_atom_numbers()
@@ -743,7 +611,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     ua_pmd_struct = pmd.load_file(infile_pdb)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ua_pmd_top = gromacs.GromacsTopologyFile(infile_top,parametrize=False)
+        ua_pmd_top = pmd.gromacs.GromacsTopologyFile(infile_top,parametrize=False)
     # throws some warnings on angle types, does not matter for bonding info
     # if error thrown, just try to "reduce" .top as far as possible
     # warnings supressed as shown on
@@ -838,100 +706,30 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
             q_vectors = [q_vector_sym_red,q_vector_qtot])    
         D_matrix_sym_qtot, q_vector_sym_qtot = construct_D_of_full_rank(
             D_matrix_sym_qtot_red, q_vector_sym_qtot_red)
-                
-        logging.info("")
-        logging.info("")
-        logging.info("")
-        logging.info("################")    
-        logging.info("CONSTRAINTS INFO")            
-        logging.info("################")    
-        logging.info("")
-        logging.info("")
         
         # CG CONSTRAINTS
         rank_D_cg = np.linalg.matrix_rank(D_matrix_cg)
         rank_Dq_cg = np.linalg.matrix_rank(np.hstack((D_matrix_cg,
                                            np.atleast_2d(q_vector_cg).T)))
-        logging.info("{:d} CG constraints, rank {:d} "
-                     " => {:d} redundant or contradictory constraints.".format(
-                         D_matrix_cg_red.shape[0], rank_D_cg, 
-                         D_matrix_cg_red.shape[0] - rank_D_cg))
-        if rank_D_cg == rank_Dq_cg:
-            logging.info("    D rank == [D,q] rank == {:d},"
-                         " solvable".format(rank_D_cg))
-        else:
-            logging.info("    D rank {:d} != [D,q] rank {:d},"
-                         " unsolvable".format(rank_D_cg, rank_Dq_cg))
-
         # CG + QTOT CONSTRAINTS
         rank_D_cg_qtot = np.linalg.matrix_rank(D_matrix_cg_qtot)
         rank_Dq_cg_qtot = np.linalg.matrix_rank(np.hstack((D_matrix_cg_qtot,
                                            np.atleast_2d(q_vector_cg_qtot).T)))
-        logging.info("{:d} CG and QTOT constraints, rank {:d} "
-                     " => {:d} redundant or contradictory constraints.".format(
-                         D_matrix_cg_qtot_red.shape[0], rank_D_cg_qtot, 
-                         D_matrix_cg_qtot_red.shape[0] - rank_D_cg_qtot))
-        if rank_D_cg_qtot == rank_Dq_cg_qtot:
-            logging.info("    D rank == [D,q] rank == {:d},"
-                         " solvable".format(rank_D_cg_qtot))
-        else:
-            logging.info("    D rank {:d} != [D,q] rank {:d},"
-                         " unsolvable".format(rank_D_cg_qtot, rank_Dq_cg_qtot))
-
-            
         # SYM CONSTRAINTS
         rank_D_sym = np.linalg.matrix_rank(D_matrix_sym)
         rank_Dq_sym = np.linalg.matrix_rank(np.hstack((D_matrix_sym,
                                            np.atleast_2d(q_vector_sym).T)))
-        logging.info("{:d} SYM constraints, rank {:d} "
-                     " => {:d} redundant or contradictory constraints.".format(
-                         D_matrix_sym_red.shape[0], rank_D_sym, 
-                         D_matrix_sym_red.shape[0] - rank_D_sym))
-        if rank_D_sym == rank_Dq_sym:
-            logging.info("    D rank == [D,q] rank == {:d},"
-                         " solvable".format(rank_D_sym))
-        else:
-            logging.info("    D rank {:d} != [D,q] rank {:d}," 
-                         " unsolvable".format(rank_D_sym, rank_Dq_sym))
-
         # SYM + QTOT CONSTRAINTS
         rank_D_sym_qtot = np.linalg.matrix_rank(D_matrix_sym_qtot)
         rank_Dq_sym_qtot = np.linalg.matrix_rank(np.hstack((D_matrix_sym_qtot,
                                            np.atleast_2d(q_vector_sym_qtot).T)))
-        logging.info("{:d} SYM and QTOT constraints, rank {:d} "
-                     " => {:d} redundant or contradictory constraints.".format(
-                         D_matrix_sym_qtot_red.shape[0], rank_D_sym_qtot, 
-                         D_matrix_sym_qtot_red.shape[0] - rank_D_sym_qtot))
-        if rank_D_sym_qtot == rank_Dq_sym_qtot:
-            logging.info("    D rank == [D,q] rank == {:d},"
-                         " solvable".format(rank_D_sym_qtot))
-        else:
-            logging.info("    D rank {:d} != [D,q] rank {:d},"
-                         " unsolvable".format(rank_D_sym_qtot, rank_Dq_sym_qtot))
-            
         # ALL CONSTRAINTS
         rank_D_all = np.linalg.matrix_rank(D_matrix_all)
         rank_Dq_all = np.linalg.matrix_rank(np.hstack((D_matrix_all,
                                            np.atleast_2d(q_vector_all).T)))
-        logging.info("{:d} ALL constraints, rank {:d} "
-                     " => {:d} redundant or contradictory constraint.".format(
-                         D_matrix_all_red.shape[0], rank_D_all, 
-                         D_matrix_all_red.shape[0] - rank_D_all))
-        if rank_D_sym == rank_Dq_sym:
-            logging.info("    D rank == [D,q] rank == {:d},"
-                         " solvable".format(rank_D_all))
-        else:
-            logging.info("    D rank {:d} != [D,q] rank {:d},"
-                         " unsolvable".format(rank_D_all, rank_Dq_all))
-                 
     # E: Minimization 
     
     ### Constrained minimization
-    logging.info("")    
-    logging.info("########################")    
-    logging.info("FULLY CONSTRAINED SYSTEM")            
-    logging.info("########################")
-    logging.info("")  
     X, A, B = constrainedMinimize(A_matrix = A_horton,
                         b_vector = B_horton,
                         C_scalar = C_horton,
@@ -946,11 +744,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     # additional debug cases
     if debug:     
         ### Unconstrained minimization
-        logging.info("")    
-        logging.info("####################")    
-        logging.info("UNCONSTRAINED SYSTEM")            
-        logging.info("####################")
-        logging.info("")  
         X_unconstrained, A_unconstrained, B_unconstrained = \
             unconstrainedMinimize(A_matrix = A_horton,
                         b_vector = B_horton,
@@ -958,11 +751,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
                         debug    = debug)
         
         ### Total charge constraint minimization
-        logging.info("")    
-        logging.info("####################################")    
-        logging.info("SYSTEM WITH TOTAL CHARGE CONSTRAINED")            
-        logging.info("####################################")
-        logging.info("")  
         X_qtot_constraint, A_qtot_constraint, B_qtot_constraint = \
             constrainedMinimize(A_matrix = A_horton,
                         b_vector = B_horton,
@@ -972,11 +760,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
                         debug    = debug)
         
         ### Charge group & total charge constraint minimization 
-        logging.info("")    
-        logging.info("######################################################")    
-        logging.info("SYSTEM WITH TOTAL CHARGE AND CHARGE GROUPS CONSTRAINED")            
-        logging.info("######################################################")
-        logging.info("")  
         X_cg_qtot, A_cg_qtot, B_cg_qtot = \
             constrainedMinimize(A_matrix = A_horton,
                         b_vector = B_horton,
@@ -986,11 +769,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
                         debug    = debug)
             
         ### Symmetry & total charge constraint minimization
-        logging.info("")    
-        logging.info("###################################################")    
-        logging.info("SYSTEM WITH TOTAL CHARGE AND SYMMETRIES CONSTRAINED")            
-        logging.info("###################################################")
-        logging.info("")
         X_sym_qtot, A_sym_qtot, B_sym_qtot = \
             constrainedMinimize(A_matrix = A_horton,
                         b_vector = B_horton,
@@ -1000,57 +778,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
                         debug    = debug)
             
         
-        #logging.info("")    
-        #logging.info("###################################")    
-        #logging.info("FULLY CONSTRAINED SYSTEM, REDUNDANT")            
-        #logging.info("###################################")
-        #logging.info("")  
-        #X_red, A_red, B_red = constrainedMinimize(A_matrix = A_horton,
-        #                    b_vector = B_horton,
-        #                    C_scalar = C_horton,
-        #                    D_matrix = D_matrix_all_red,
-        #                    q_vector = q_vector_all_red,
-        #                    debug    = debug)
-
-        logging.info("")
-        logging.info("")
-        logging.info("")
-        logging.info("#################################")    
-        logging.info("RESULTS FOR DIFFERENT CONSTRAINTS")            
-        logging.info("#################################")    
-        logging.info("")
-        logging.info("")
-        logging.info("### UNCONSTRAINED ###")
-        logResults(X_unconstrained,A_unconstrained,B_unconstrained,C_horton,N_horton)
-        
-        logging.info("")    
-        logging.info("")
-        logging.info("### QTOT CONSTRAINED ###")
-        logResults(X_qtot_constraint,A_qtot_constraint,
-                    B_qtot_constraint,C_horton,N_horton)
-        
-        logging.info("")
-        logging.info("")
-        logging.info("### QTOT & CG CONSTRAINED ###")
-        logResults(X_cg_qtot,A_cg_qtot,B_cg_qtot,C_horton,N_horton)
-        
-        logging.info("")
-        logging.info("")
-        logging.info("### QTOT & SYM CONSTRAINED ###")
-        logResults(X_sym_qtot,A_sym_qtot,B_sym_qtot,C_horton,N_horton)
-        
-        #logging.info("")
-        #logging.info("")
-        #logging.info("### FULLY CONSTRAINED, REDUNDANT ###")
-        #logResults(X_red,A_red,B_red,C_horton,N_horton)
-
-
-        logging.info("")
-        logging.info("")
-        logging.info("### FULLY CONSTRAINED ###")
-        logResults(X,A,B,C_horton,N_horton)
-        
-        #ase2pmd_df.columns.append(['q_unconstrained', 'q_qtot_constrained', 'q_qtot_cg_constrained'])
         ase2pmd_df['q_unconstrained'] = X_unconstrained
         ase2pmd_df['q_qtot_constrained'] = X_qtot_constraint[:N_horton]
         ase2pmd_df['q_cg_qtot_constrained'] = X_cg_qtot[:N_horton]
@@ -1060,43 +787,22 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
         checkSymmetries(ase2pmd_df,sym2ase)
 
  
-    #atom_charge_dict = dict(zip(names[0:ua_count],charges))
-          
     # one line to assign unique charge group numbers starting at 1 to ASE indices
     ase2cg = dict([(idx, cgnr+1) for cgnr,cg in enumerate(cg2ase) for idx in cg])
-    logging.info("ase2cg: {}".format(ase2cg))    
 
     for a in pmd_top.atoms:
         a.charge = X[ pmd2ase[(a.name,a.residue.name)] ]
         a.cgnr = ase2cg[ pmd2ase[(a.name,a.residue.name)] ]
-        
-    for a in pmd_top.atoms:
-        logging.info("(name, residue): ({:>4s},{:>4s}), q = {:> .3f}, cgnr = {:>3d}".format(
-            a.name, a.residue.name, a.charge, a.cgnr))    
 
-        
     if outfile_top:
         pmd_top.save(outfile_top, overwrite=True)
   
     if outfile_csv:       
         ase2pmd_df.to_csv(outfile_csv, sep=',')
        
-            
-    logging.info("####")    
-    logging.info("DONE")            
-    logging.info("####")   
-    
     return X[:N_horton], X[N_horton:], ase2pmd_df, cg2ase, cg2cgtype, cg2q, sym2ase
 
-### ACTUAL PROGRAM ###
-#--------------------#
-def main():
-    print('This is {}.'.format(__file__))
-    import sys
-    import ast
-    import argparse
-    
-
+def parse_args():
     parser = argparse.ArgumentParser(prog='esp-fit-constrained.py',
         description='Estimate charges from a HORTON ESP cost function'
                                      'under arbitrary constraints.')
@@ -1138,7 +844,16 @@ def main():
         help="Prints a lot of information.")
 
     args = parser.parse_args()
+    return args
 
+### ACTUAL PROGRAM ###
+#--------------------#
+def main():
+    print('This is {}.'.format(__file__))
+
+    args = parse_args()
+
+    # Total Charge
     total_charge = args.qtot
     # Use provided charge, or fallback to loading the charge from file
     if total_charge is None:
@@ -1146,17 +861,9 @@ def main():
         total_charge = read_total_charge(path='../fitting_constraint_files/total_charge.csv')
     print('A total charge of {} is used.'.format(total_charge))
     
-    if args.verbose == True:
-        loglevel = logging.DEBUG
-    else:
-        loglevel = logging.WARNING
-
+    # Hydrogen insertion rules
     implicitHbondingPartners = read_atom_numbers(args.insertion_rules)
 
-    logging.basicConfig(stream=sys.stdout, level=loglevel)  
-    logging.info('Using replacement rules "{}"...'.format(args.insertion_rules))
-   
-    #q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase
     q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase = \
     fitESPconstrained(infile_pdb = args.infile_pdb, 
               infile_top = args.infile_top, 
@@ -1168,8 +875,9 @@ def main():
               implicitHbondingPartners = implicitHbondingPartners, 
               debug = args.verbose, outfile_top=args.outfile_top,
               outfile_csv=args.outfile_csv)
-    
-    # np.savetxt(args.outfile_csv, q, delimiter=',')    
+
+    print(q)
+    print(lagrange_multiplier)
     
 if __name__ == '__main__':
     main()
