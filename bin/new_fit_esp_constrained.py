@@ -6,14 +6,14 @@ Author: Johannes Hoermann
 Refactored: Lukas Elflein <elfleinl@tf.uni-freiburg.de> """
 
 import warnings
-
-import numpy as np
-import pandas as pd
-
+import sys
+import ast
+import argparse
 import os
 import ase.io
 import parmed as pmd
-from parmed import gromacs
+import numpy as np
+import pandas as pd
 
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
@@ -404,7 +404,7 @@ def read_SameChargedAtoms(file_name, ase2pmd):
         new_symmetry_group = ase2pmd_df[ ase2pmd_df['atom'] == a ]
         if not new_symmetry_group.empty:                                
             if len(new_symmetry_group.index.values) < 2:
-		pass
+                pass
             else:
                 sym2ase.append(new_symmetry_group.index.values)   
                 
@@ -611,7 +611,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     ua_pmd_struct = pmd.load_file(infile_pdb)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ua_pmd_top = gromacs.GromacsTopologyFile(infile_top,parametrize=False)
+        ua_pmd_top = pmd.gromacs.GromacsTopologyFile(infile_top,parametrize=False)
     # throws some warnings on angle types, does not matter for bonding info
     # if error thrown, just try to "reduce" .top as far as possible
     # warnings supressed as shown on
@@ -778,7 +778,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
                         debug    = debug)
             
         
-        #ase2pmd_df.columns.append(['q_unconstrained', 'q_qtot_constrained', 'q_qtot_cg_constrained'])
         ase2pmd_df['q_unconstrained'] = X_unconstrained
         ase2pmd_df['q_qtot_constrained'] = X_qtot_constraint[:N_horton]
         ase2pmd_df['q_cg_qtot_constrained'] = X_cg_qtot[:N_horton]
@@ -788,8 +787,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
         checkSymmetries(ase2pmd_df,sym2ase)
 
  
-    #atom_charge_dict = dict(zip(names[0:ua_count],charges))
-          
     # one line to assign unique charge group numbers starting at 1 to ASE indices
     ase2cg = dict([(idx, cgnr+1) for cgnr,cg in enumerate(cg2ase) for idx in cg])
 
@@ -797,7 +794,6 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
         a.charge = X[ pmd2ase[(a.name,a.residue.name)] ]
         a.cgnr = ase2cg[ pmd2ase[(a.name,a.residue.name)] ]
 
-        
     if outfile_top:
         pmd_top.save(outfile_top, overwrite=True)
   
@@ -806,15 +802,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
        
     return X[:N_horton], X[N_horton:], ase2pmd_df, cg2ase, cg2cgtype, cg2q, sym2ase
 
-### ACTUAL PROGRAM ###
-#--------------------#
-def main():
-    print('This is {}.'.format(__file__))
-    import sys
-    import ast
-    import argparse
-    
-
+def parse_args():
     parser = argparse.ArgumentParser(prog='esp-fit-constrained.py',
         description='Estimate charges from a HORTON ESP cost function'
                                      'under arbitrary constraints.')
@@ -856,7 +844,16 @@ def main():
         help="Prints a lot of information.")
 
     args = parser.parse_args()
+    return args
 
+### ACTUAL PROGRAM ###
+#--------------------#
+def main():
+    print('This is {}.'.format(__file__))
+
+    args = parse_args()
+
+    # Total Charge
     total_charge = args.qtot
     # Use provided charge, or fallback to loading the charge from file
     if total_charge is None:
@@ -864,10 +861,9 @@ def main():
         total_charge = read_total_charge(path='../fitting_constraint_files/total_charge.csv')
     print('A total charge of {} is used.'.format(total_charge))
     
+    # Hydrogen insertion rules
     implicitHbondingPartners = read_atom_numbers(args.insertion_rules)
 
-   
-    #q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase
     q, lagrange_multiplier, info_df, cg2ase, cg2cgtype, cg2q, sym2ase = \
     fitESPconstrained(infile_pdb = args.infile_pdb, 
               infile_top = args.infile_top, 
@@ -879,8 +875,9 @@ def main():
               implicitHbondingPartners = implicitHbondingPartners, 
               debug = args.verbose, outfile_top=args.outfile_top,
               outfile_csv=args.outfile_csv)
-    
-    # np.savetxt(args.outfile_csv, q, delimiter=',')    
+
+    print(q)
+    print(lagrange_multiplier)
     
 if __name__ == '__main__':
     main()
