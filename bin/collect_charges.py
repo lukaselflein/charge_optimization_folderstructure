@@ -105,14 +105,13 @@ def extract_init_charges(rtp_path, df):
                 print('Successfully loaded topolgy file {}'.format(rtp_path))
                 rtp_text = rtp_file.readlines()
 
-                current_residuum = None
                 for line in rtp_text:
+                        current_residuum = None
                         # atom names are only unique inside one residuum
                         # Thus, specify which res we are currently in
                         for residuum in residuum_names:
                                 if residuum in line:
                                         current_residuum = residuum
-                                        break
                         # Now, we can look up the atom name in the charge table.
                         # First, select the lines with exactly one atom name
                         for atom_name in atom_names:
@@ -154,7 +153,8 @@ def main():
 
 	# Collect all bader charges
 	print('Collecting Bader charges ...')
-	bader_df = collect_bader()
+	print('Skipping, Bader is broken right now.')
+	# bader_df = collect_bader()
 
 	# Paste everything into single dataframe
 	print('Combining different charges into one table ... ')
@@ -163,7 +163,7 @@ def main():
 	collect_df = avg_df
 	collect_df = collect_df.append(constr_df, sort=False) 
 	collect_df = collect_df.append(unconstr_df, sort=False) 
-	collect_df = collect_df.append(bader_df, sort=False)
+	# collect_df = collect_df.append(bader_df, sort=False)
 
 	create_dir(path='./plotting')
 	collect_df.to_csv('./plotting/all_charges.csv')
