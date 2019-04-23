@@ -29,14 +29,14 @@ module purge
 module load horton/2.1.0b3 2>.module_load.log
 module load smamp
 module load gromacs
-python ../bin/fitESPconstrained.py horton_charges/costfunction_average.h5 200_ps_snapshot/0_initial_structure/snapshot_200.pdb 200_ps_snapshot/0_initial_structure/example.top ../fitting_constraint_files/atoms_in_charge_group.csv ../fitting_constraint_files/charge_group_total_charge.csv ../fitting_constraint_files/atoms_of_same_charge.csv updated_charges.top horton_charges/fitted_point_charges.csv -i ../fitting_constraint_files/hydrogen_per_atom.csv  --verbose 2>&1 >horton_charges/charge_fitting.log
+python ../bin/fitESPconstrained.py horton_charges/costfunction_average.h5 1000_ps_snapshot/0_initial_structure/snapshot_1000.pdb 1000_ps_snapshot/0_initial_structure/topol.top ../fitting_constraint_files/atoms_in_charge_group.csv ../fitting_constraint_files/charge_group_total_charge.csv ../fitting_constraint_files/atoms_of_same_charge.csv updated_charges.top horton_charges/fitted_point_charges.csv -i ../fitting_constraint_files/hydrogen_per_atom.csv  --verbose 2>&1 >horton_charges/charge_fitting.log
 # Output: test.top, fitted_point_charges.top
 
 # Write new point charges into .rtp topology file
 module purge
 module load devel/python/3.6.5
 module load smamp
-python charges_to_rtp.py -rtp md_simulation/n7nh2.rtp -csv horton_charges/fitted_point_charges.csv -out modified_charges_topology.rtp
+#python charges_to_rtp.py -rtp md_simulation/n7nh2.rtp -csv horton_charges/fitted_point_charges.csv -out modified_charges_topology.rtp
 # Output: modified_charges_topology.rtp
 
 # Calculate indiviudal charges for error bars
@@ -53,12 +53,13 @@ module load devel/python/3.6.5
 module load bader-analysis
 module load gromacs
 module load smamp
-python loop_bader.py
+# python loop_bader.py
 # Output: bader_charges.csv
 
 # Plot charges
 module purge
 module load devel/python/3.6.5
+module load smamp
 python collect_charges.py
 python plot_charges.py
 # Output: boxplot.png, pointplot_*.png (in plotting/ )
