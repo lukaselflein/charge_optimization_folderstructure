@@ -13,6 +13,7 @@ import ase.io
 import parmed as pmd
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
@@ -162,7 +163,7 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
 
 def stack_constraints(group_matrix, group_q, symmetry_matrix, symmetry_q):
 
-	if not None in (group_matrix, group_q, symmetry_matrix, symmetry_q):
+	if all([x is not None for x in (group_matrix, group_q, symmetry_matrix, symmetry_q)]):
 		constraint_matrix = np.vstack(group_matrix, symmetry_matrix)
 		constraint_q = np.vstack(group_q, symmetry_q)
 		return constraint_matrix, constraint_q
@@ -177,7 +178,7 @@ def stack_constraints(group_matrix, group_q, symmetry_matrix, symmetry_q):
 		return None, None
 
 
-def get_constraints(args, ase2pmd):
+def get_constraints(args, ase2pmd, n_atoms):
 	'''Read provided constraint files and convert them into matrix form.'''
 	charge_group_file = args.charge_groups
 	charge_group_charges_file = args.charge_group_charges
@@ -275,16 +276,18 @@ def main():
 	# Look up the relationship between ASE indices, atom names
 	pmd_struct, pmd_top, ase2pmd = create_structure(args.pdb_infile, args.top_infile)
 
-	# Calculate constraints
-	logic_constraints, charge_constraints = get_constraints(args, ase2pmd=ase2pmd)
-
 	# Import A and B matrices from HORTON
 	A, B = read_horton_cost_function(args.horton_cost_function)
+
+	# Calculate constraints
+	logic_constraints, charge_constraints = get_constraints(args, ase2pmd=ase2pmd, n_atoms=len(B))
 
 	# Run the constrained minimization
 	q, f = constrained_minimize(A, B, logic_constraints, charge_constraints)
 
 	print(q)
+	plt.plot(q, range(len(q)), lw=0, marker='o')
+	plt.show()
 
 	# Save charges
 	write_charges(q)
