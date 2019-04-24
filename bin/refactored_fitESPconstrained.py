@@ -18,10 +18,9 @@ import matplotlib.pyplot as plt
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
 
-def create_structure(infile_pdb, infile_top, strip_string=':SOL,CL', implicitHbondingPartners = None):
+def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,CL'):
         
-    if implicitHbondingPartners is None:
-        implicitHbondingPartners = read_atom_numbers()
+    implicitHbondingPartners = read_atom_numbers(hydrogen_file)
         
     ua_ase_struct = ase.io.read(infile_pdb)
     ua_pmd_struct = pmd.load_file(infile_pdb)
@@ -302,6 +301,10 @@ def parse_command_line():
 		help='The file where the optimized charges should be written to.',
 		default='fitted_point_charges.csv', metavar='fitted_point_charges.csv')
 
+	parser.add_argument('-hyd', '--hydrogen_file',
+		help='The hydrogen insertion rules',
+		default='hydrogen_per_atom.csv', metavar='hydrogen_per_atom.csv')
+
 	args = parser.parse_args()
 
 	return args
@@ -329,7 +332,13 @@ def write_charges(q, q_unconstrained, ase2pmd):
 	return df
 
 
-def write_forces(f):
+def write_forces(f, logic_constraints):
+
+	f = np.atleast_2d(f).T
+	c = np.concatenate((f, logic_constraints), axis=1)
+	c = np.sort(c, axis=0)
+	print(c)
+	
 	pass
 
 
@@ -340,7 +349,8 @@ def main():
 	args = parse_command_line()
 
 	# Look up the relationship between ASE indices, atom names
-	pmd_struct, pmd_top, ase2pmd = create_structure(args.pdb_infile, args.top_infile)
+	pmd_struct, pmd_top, ase2pmd = create_structure(args.pdb_infile, args.top_infile, 
+							args.hydrogen_file)
 
 	# Import A and B matrices from HORTON
 	A, B = read_horton_cost_function(args.horton_cost_function)
@@ -355,10 +365,10 @@ def main():
 
 
 	# Save charges
-	charge_df = write_charges(q, q_unconstrained, ase2pmd)
+	# charge_df = write_charges(q, q_unconstrained, ase2pmd)
 
 	# Save Lagrange forces
-	write_forces(f)
+	write_forces(f, logic_constraints)
 
 	print('Done.')
 	
