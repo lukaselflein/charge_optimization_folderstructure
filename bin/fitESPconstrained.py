@@ -363,11 +363,6 @@ def read_AtomName_ChargeGroup(file_name, ase2pmd):
         more than one atom index and thus carry an ambiguous meaning.
     """
 
-    # If no constraints are given, we want to skip all of this
-    with open(file_name) as infile:
-        print(infile.read)
-        exit()
-	
 
     ase2pmd_df = pd.DataFrame(ase2pmd).T
     ase2pmd_df.columns = ['atom','residue']    
