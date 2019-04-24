@@ -166,9 +166,9 @@ def symmetry_names_to_index_groups(symm_names, ase2pmd):
 def symmetry_groups_to_matrix(symm_groups, n_atoms):
     """ Generate matrix-constraints from groups of same-charge indices.
     >>> groups = [[0, 2, 3]]
-    >>> c = np.array([[1, 0, -1, 0, 0], [1, 0, 0, -1, 0]])
-    >>> symmetry_groups_to_matrix(groups, n_atoms=5) == c
-    c
+    >>> symmetry_groups_to_matrix(groups, n_atoms=5)[0]
+    array([[ 1,  0, -1,  0,  0],
+           [ 1,  0,  0, -1,  0]])
     """
     symm_list = []
     for group in symm_groups:
@@ -310,36 +310,57 @@ def parse_command_line():
 	return args
 
 
-def write_charges(q, q_unconstrained, ase2pmd):
+def write_charges(q, q_unconstrained, ase2pmd, out_name='fitted_point_charges', plot=False):
 	def number_to_atom_name(i):
 	    return ase2pmd[i][0]
 	def number_to_residuum(i):
 	    return ase2pmd[i][1]
 
 	df = pd.DataFrame(q, columns=['q'])
-	df['q_unconstrained'] = q
+	df['q_unconstrained'] = q_unconstrained
 	df['indices'] = df.index
 	df['atom'] = df.indices.apply(number_to_atom_name)
 	df['residue'] = df.indices.apply(number_to_residuum)
 	df = df.drop(['indices'], axis=1)
 	df = df[['atom', 'residue', 'q', 'q_unconstrained']]
-	df.to_csv('fitted_point_charges.csv')
+	df.to_csv(out_name)
 
-	plt.plot(q, range(len(q)), lw=0, marker='o')
-	plt.plot(q_unconstrained, range(len(q_unconstrained)), lw=0, marker='o')
-	plt.show()
+	if plot:
+		plt.plot(q, range(len(q)), lw=0, marker='o')
+		plt.plot(q_unconstrained, range(len(q_unconstrained)), lw=0, marker='o')
+		plt.show()
 
 	return df
 
 
-def write_forces(f, logic_constraints):
+def write_forces(forces, logic_constraints, ase2pmd):
 
-	f = np.atleast_2d(f).T
-	c = np.concatenate((f, logic_constraints), axis=1)
-	c = np.sort(c, axis=0)
-	print(c)
-	
-	pass
+	forces = np.atleast_2d(forces).T
+	c = np.concatenate((forces, logic_constraints), axis=1)
+	c = c[c[:,0].argsort()]
+
+	# Sorted forces and constraints
+	forces = c[:, 0]
+	l = c[:, 1:]
+
+	force_constraint = []
+	for i in range(len(l)):
+		line = l[i]
+		f = forces[i]
+		constraint = np.nonzero(line)[0]
+		readable_con = [f]
+		for number in constraint:
+			atom = ase2pmd[number][0] + '/' + ase2pmd[number][1]
+			readable_con += [atom]
+		force_constraint += [readable_con]
+
+	with open('langrange_forces.csv', 'w') as outfile:
+		outfile.write('force, atom names\n')
+		for entry in force_constraint:
+			line = '{0:.3f}, '.format(entry[0])
+			line += ' '.join(entry[1:])
+			line += '\n'
+			outfile.write(line)
 
 
 def main():
@@ -365,10 +386,10 @@ def main():
 
 
 	# Save charges
-	# charge_df = write_charges(q, q_unconstrained, ase2pmd)
+	charge_df = write_charges(q, q_unconstrained, ase2pmd, out_name=args.output_file, plot=False)
 
 	# Save Lagrange forces
-	write_forces(f, logic_constraints)
+	write_forces(f, logic_constraints, ase2pmd)
 
 	print('Done.')
 	
