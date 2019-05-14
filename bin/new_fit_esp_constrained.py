@@ -478,10 +478,10 @@ def read_horton_cost_function(file_name, debug=False):
 
     cost_function = h5py.File(file_name)
     cost = cost_function['cost']
-    A_horton = cost['A'][:]
-    B_horton = cost['B'][:]
-    C_horton = cost['C'].value
-    N_horton = cost['natom'].value
+    A_horton = cost['A'][()]
+    B_horton = cost['B'][()]
+    C_horton = cost['C'][()]
+    N_horton = cost['natom'][()]
 
     return A_horton, B_horton, C_horton, N_horton
 
@@ -800,7 +800,7 @@ def fitESPconstrained(infile_pdb, infile_top, infile_cost_h5,
     if outfile_csv:       
         ase2pmd_df.to_csv(outfile_csv, sep=',')
        
-    return X[:N_horton], X[N_horton:], ase2pmd_df, cg2ase, cg2cgtype, cg2q, sym2ase
+    return X[:N_horton], X[N_horton:], ase2pmd_df, cg2ase, cg2cgtype, cg2q, sym2ase, D_matrix_all, q_vector_all
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='esp-fit-constrained.py',
