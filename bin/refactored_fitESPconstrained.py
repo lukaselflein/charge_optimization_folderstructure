@@ -19,6 +19,20 @@ from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
 
 def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,CL'):
+    """Build ase-format atomic structure descriptions.
+    Especially useful is a dictionary listing the relationship between ase indices and atom names.
+
+    Parameters:
+    infile_pdb: path to the gromacs structure file
+    infile_top: path to the gromacs topology file
+    hydrogen_file: file with explicit hydrogen atom description
+    strip_string: atoms to be removed from .pdb file
+
+    Returns:
+    pmd_struct:
+    pmd_top: 
+    ase2pmd: Dictionary mapping ase indices to atom names
+    """
         
     implicitHbondingPartners = read_atom_numbers(hydrogen_file)
         
@@ -64,16 +78,35 @@ def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,C
     return pmd_struct, pmd_top, ase2pmd
 
 def constrained_minimize(A, B, D=None, Q=None):
+	"""Find the minimum of the HORTON cost function.
+	The cost function is parametrized with matrix A and vector B.
+	In the unconstrained case, the minimization is equivalent to solving
+	A x - B = 0
+	for the charges x.
 
+	In the case of constraints, we have to solve the problem
+	A D  x  =  B  
+	D 0  l     Q
+	with D being the logical constraints, and Q the respective charge values.
+
+	The function first stacks (A, D) and (B, Q) to resemble 
+	the unconstrained case formally, then solves the constrained equation.
+
+	Parameters:
+	A (np.array): Matrix with quadratic terms of cost fucnction
+	B (np.array): Vector with linear tearms of cost function
+	D (np.array): Matrix with constraint logic
+	Q (np.array): Vector with constraint charges
+
+	Returns:
+	charges (np.array): Vector of optimal charges
+	langrange_forces (np.array): Vector of forces neccesary constrain charges
+	"""
 	# Default to zero total charge constraint
 	if D is None and Q is None:
 		Q = np.array([0])
 		D = np.ones(B.shape[0])
 		
-
-	# Minimize the cost
-	# cost = xAx - 2Bx - C 
-
 	# Cast everything to arrays
 	A = np.atleast_2d(A)
 	D = np.atleast_2d(D)
@@ -87,12 +120,6 @@ def constrained_minimize(A, B, D=None, Q=None):
 		stack = np.block
 
 	# Stack the HORTON matrices with the constraints
-	# Unconstrained:
-	# A x - B = 0
-	#
-	# With constraints:
-	# A D  x  =  B  
-	# D 0  l     Q
 	zeros = np.zeros((Q.shape[0], Q.shape[0]))
 	A_con = stack([[A, D.T],
 		       [D, zeros]])
@@ -101,15 +128,26 @@ def constrained_minimize(A, B, D=None, Q=None):
 	x = np.linalg.solve(A_con, B_con)
 
 	charges = x[:len(B)]
-	langrange_forces = x[len(B):]
-	return charges, langrange_forces
+	lagrange_forces = x[len(B):]
+	return charges, lagrange_forces
+
 
 def unconstrained_minimize(A, B):
+	"""Find the unconstrained minimum of the HORTON cost function A x - B = 0.
+
+	Parameters:
+	A (np.array): Matrix with quadratic terms of cost fucnction
+	B (np.array): Vector with linear tearms of cost function
+
+	Returns:
+	charges (np.array): Vector of optimal charges
+	"""
 	charges = np.linalg.solve(A, B)
 	return(charges)
-	
+
 
 def parse_charge_groups(file_name, ase2pmd):
+	"""Read the charge group file."""
 	# first we read in the textfile
 	df = pd.read_csv(file_name, sep=',', header=None,
 			 comment='#', names=['atom','cg'])
@@ -137,15 +175,17 @@ def parse_charge_groups(file_name, ase2pmd):
 	return charge_groups
 
 def parse_group_charges(file_name):
+	"""Read the file specifying total charges of each charge group."""
 	group_q = pd.read_csv(file_name, sep=',', header=None, comment='#',
 	                      names=['charge'], index_col=0)
 	group_q.charge = group_q.charge.astype(int)    
 	return group_q
 
 def parse_symmetry(file_name):
-    df = pd.read_csv(file_name, sep=',', header=None,  comment='#')
-    symm_names = df.values.tolist()
-    return symm_names
+	"""Read the file containing pair-symmetry constraints."""
+	df = pd.read_csv(file_name, sep=',', header=None,  comment='#')
+	symm_names = df.values.tolist()
+	return symm_names
                 
 def symmetry_names_to_index_groups(symm_names, ase2pmd):
     """Transform atom-name based constraints into index-based constraints."""
@@ -164,26 +204,26 @@ def symmetry_names_to_index_groups(symm_names, ase2pmd):
     return symm_groups
             
 def symmetry_groups_to_matrix(symm_groups, n_atoms):
-    """ Generate matrix-constraints from groups of same-charge indices.
-    >>> groups = [[0, 2, 3]]
-    >>> symmetry_groups_to_matrix(groups, n_atoms=5)[0]
-    array([[ 1,  0, -1,  0,  0],
-           [ 1,  0,  0, -1,  0]])
-    """
-    symm_list = []
-    for group in symm_groups:
-        for atom_index in group[1:]:
-            matrix_row = np.zeros(n_atoms, dtype=int)
-            matrix_row[group[0]] = 1
-            matrix_row[atom_index] = -1
-            symm_list += [matrix_row]
+	"""Generate matrix-constraints from groups of same-charge indices.
+	>>> groups = [[0, 2, 3]]
+	>>> symmetry_groups_to_matrix(groups, n_atoms=5)[0]
+	array([[ 1,  0, -1,  0,  0],
+	   [ 1,  0,  0, -1,  0]])
+	"""
+	symm_list = []
+	for group in symm_groups:
+		for atom_index in group[1:]:
+			matrix_row = np.zeros(n_atoms, dtype=int)
+			matrix_row[group[0]] = 1
+			matrix_row[atom_index] = -1
+			symm_list += [matrix_row]
 
-    symmetry_matrix = np.array(symm_list)
-    symmetry_q = np.zeros(symmetry_matrix.shape[0], dtype=int)
-
-    return symmetry_matrix, symmetry_q
+	symmetry_matrix = np.array(symm_list)
+	symmetry_q = np.zeros(symmetry_matrix.shape[0], dtype=int)
+	return symmetry_matrix, symmetry_q
 
 def make_symmetry_constraints(symmetry_file, ase2pmd):
+	"""Transform atom-name symmetry constraints to ase-index matrix format."""
 	symm_names = parse_symmetry(file_name=symmetry_file)
 	symm_groups = symmetry_names_to_index_groups(symm_names, ase2pmd)
 	n_atoms = len(ase2pmd)
@@ -191,6 +231,7 @@ def make_symmetry_constraints(symmetry_file, ase2pmd):
 	return D_matrix, Q_vector
 
 def make_group_constraints(charge_groups, group_q, n_atoms):
+	"""Transform atom-name group charge group constraints to ase-index matrix form."""
 	# Initialize empty arrays
 	D_matrix = np.zeros((len(charge_groups), n_atoms), dtype=int)
 	Q_vector = np.zeros(len(charge_groups), dtype=int)
@@ -209,7 +250,7 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
 
 
 def stack_constraints(group_matrix, group_q, symmetry_matrix, symmetry_q):
-
+	"""Transform all constraint matrices into a single matrix."""
 	if all([x is not None for x in (group_matrix, group_q, symmetry_matrix, symmetry_q)]):
 		constraint_matrix = np.concatenate((group_matrix, symmetry_matrix), axis=0)
 		constraint_q = np.concatenate((group_q, symmetry_q), axis=0)
@@ -261,10 +302,11 @@ def get_constraints(args, ase2pmd):
 
 
 def read_horton_cost_function(file_name):
-    cost_function = h5py.File(file_name)
-    A = cost_function['cost']['A'][()]
-    B = cost_function['cost']['B'][()]
-    return A, B
+	"""Extract A and B HORTON cost function matrics from HDF5 binary."""
+	cost_function = h5py.File(file_name)
+	A = cost_function['cost']['A'][()]
+	B = cost_function['cost']['B'][()]
+	return A, B
 
 
 def parse_command_line():
@@ -272,45 +314,35 @@ def parse_command_line():
 	parser = argparse.ArgumentParser(prog='esp-fit-constrained.py',
 				         description='Estimate charges from a HORTON ESP'
 						     'cost function under constraints.')
-	
 	parser.add_argument('-hor', '--horton_cost_function',
 		help='The location of the HORTON cost function file.',
 		required=True, metavar='cost.h5')
-
 	parser.add_argument('-p', '--pdb_infile',
 		help='The location of the atomic structure file',
 		required=True, metavar='snapshot.pdb')
-
 	parser.add_argument('-t', '--top_infile',
 		help='The location of the topolgy file',
 		required=True, metavar='topol.top')
-
 	parser.add_argument('-g', '--charge_groups',
 		help='The location of the charge group constraints .csv file.',
 		metavar='atoms_in_charge_group.csv', default=None)
-
 	parser.add_argument('-c', '--charge_group_charges',
 		help='The location of the charge group total charges .csv file.',
 		metavar='charge_group_total_charge.csv', default=None)
-
 	parser.add_argument('-s', '--symmetry_file',
 		help='The location of the symmetry constraints file.',
 		metavar='atoms_of_same_charge.csv', default=None)
-
 	parser.add_argument('-o', '--output_file',
 		help='The file where the optimized charges should be written to.',
 		default='fitted_point_charges.csv', metavar='fitted_point_charges.csv')
-
 	parser.add_argument('-hyd', '--hydrogen_file',
 		help='The hydrogen insertion rules',
 		default='hydrogen_per_atom.csv', metavar='hydrogen_per_atom.csv')
-
-	args = parser.parse_args()
-
-	return args
+	return parser.parse_args()
 
 
 def write_charges(q, q_unconstrained, ase2pmd, out_name='fitted_point_charges', plot=False):
+	"""Write array of charges into .csv output file."""
 	def number_to_atom_name(i):
 	    return ase2pmd[i][0]
 	def number_to_residuum(i):
@@ -334,27 +366,29 @@ def write_charges(q, q_unconstrained, ase2pmd, out_name='fitted_point_charges', 
 
 
 def write_forces(forces, logic_constraints, ase2pmd):
-
-	forces = np.atleast_2d(forces).T
-	c = np.concatenate((forces, logic_constraints), axis=1)
-	c = c[c[:,0].argsort()]
-
-	# Sorted forces and constraints
-	forces = c[:, 0]
-	l = c[:, 1:]
+	"""Write lagrange forces to .csv output file."""
 
 	force_constraint = []
-	for i in range(len(l)):
-		line = l[i]
-		f = forces[i]
-		constraint = np.nonzero(line)[0]
-		readable_con = [f]
-		for number in constraint:
-			atom = ase2pmd[number][0] + '/' + ase2pmd[number][1]
-			readable_con += [atom]
-		force_constraint += [readable_con]
+	if logic_constraints is not None:
+		forces = np.atleast_2d(forces).T
+		c = np.concatenate((forces, logic_constraints), axis=1)
+		c = c[c[:,0].argsort()]
 
-	with open('langrange_forces.csv', 'w') as outfile:
+		# Sorted forces and constraints
+		forces = c[:, 0]
+		l = c[:, 1:]
+
+		for i in range(len(l)):
+			line = l[i]
+			f = forces[i]
+			constraint = np.nonzero(line)[0]
+			readable_con = [f]
+			for number in constraint:
+				atom = ase2pmd[number][0] + '/' + ase2pmd[number][1]
+				readable_con += [atom]
+			force_constraint += [readable_con]
+
+	with open('lagrange_forces.csv', 'w') as outfile:
 		outfile.write('force, atom names\n')
 		for entry in force_constraint:
 			line = '{0:.3f}, '.format(entry[0])
@@ -384,13 +418,11 @@ def main():
 
 	q_unconstrained = unconstrained_minimize(A, B)
 
-
 	# Save charges
 	charge_df = write_charges(q, q_unconstrained, ase2pmd, out_name=args.output_file, plot=False)
 
 	# Save Lagrange forces
 	write_forces(f, logic_constraints, ase2pmd)
-
 	print('Done.')
 	
 
