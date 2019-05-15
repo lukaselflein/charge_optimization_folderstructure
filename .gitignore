@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+G# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -109,4 +109,4 @@ venv.bak/
 *simulation_data*
 *bk*
 *swp
-*test*
+*tryout*
