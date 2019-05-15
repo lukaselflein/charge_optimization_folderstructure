@@ -22,16 +22,16 @@ def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,C
     """Build ase-format atomic structure descriptions.
     Especially useful is a dictionary listing the relationship between ase indices and atom names.
 
-    Parameters:
-    infile_pdb: path to the gromacs structure file
-    infile_top: path to the gromacs topology file
-    hydrogen_file: file with explicit hydrogen atom description
-    strip_string: atoms to be removed from .pdb file
+    Args:
+       infile_pdb (str): path to the gromacs structure file
+       infile_top (str): path to the gromacs topology file
+       hydrogen_file (str): file with explicit hydrogen atom description
+       strip_string (str): atoms to be removed from .pdb file
 
     Returns:
-    pmd_struct:
-    pmd_top: 
-    ase2pmd: Dictionary mapping ase indices to atom names
+       pmd_struct:
+       pmd_top: 
+       ase2pmd (dict): A map of ase indices to atom names
     """
         
     implicitHbondingPartners = read_atom_numbers(hydrogen_file)
@@ -92,15 +92,15 @@ def constrained_minimize(A, B, D=None, Q=None):
    The function first stacks (A, D) and (B, Q) to resemble 
    the unconstrained case formally, then solves the constrained equation.
 
-   Parameters:
-   A (np.array): Matrix with quadratic terms of cost fucnction
-   B (np.array): Vector with linear tearms of cost function
-   D (np.array): Matrix with constraint logic
-   Q (np.array): Vector with constraint charges
+   Args:
+      A (np.array): Matrix with quadratic terms of cost fucnction
+      B (np.array): Vector with linear tearms of cost function
+      D (np.array): Matrix with constraint logic
+      Q (np.array): Vector with constraint charges
 
    Returns:
-   charges (np.array): Vector of optimal charges
-   langrange_forces (np.array): Vector of forces neccesary constrain charges
+      charges (np.array): Vector of optimal charges
+      langrange_forces (np.array): Vector of forces neccesary constrain charges
    """
    # Default to zero total charge constraint
    if D is None and Q is None:
@@ -135,12 +135,12 @@ def constrained_minimize(A, B, D=None, Q=None):
 def unconstrained_minimize(A, B):
    """Find the unconstrained minimum of the HORTON cost function A x - B = 0.
 
-   Parameters:
-   A (np.array): Matrix with quadratic terms of cost fucnction
-   B (np.array): Vector with linear tearms of cost function
+   Args:
+      A (np.array): Matrix with quadratic terms of cost fucnction
+      B (np.array): Vector with linear tearms of cost function
 
    Returns:
-   charges (np.array): Vector of optimal charges
+      charges (np.array): Vector of optimal charges
    """
    charges = np.linalg.solve(A, B)
    return(charges)
@@ -208,7 +208,7 @@ def symmetry_groups_to_matrix(symm_groups, n_atoms):
    >>> groups = [[0, 2, 3]]
    >>> symmetry_groups_to_matrix(groups, n_atoms=5)[0]
    array([[ 1,  0, -1,  0,  0],
-      [ 1,  0,  0, -1,  0]])
+          [ 1,  0,  0, -1,  0]])
    """
    symm_list = []
    for group in symm_groups:
@@ -222,13 +222,13 @@ def symmetry_groups_to_matrix(symm_groups, n_atoms):
    symmetry_q = np.zeros(symmetry_matrix.shape[0], dtype=int)
    return symmetry_matrix, symmetry_q
 
-def make_symmetry_constraints(symmetry_file, ase2pmd):
+def make_symmetry_constraints(symm_names, ase2pmd):
    """Transform atom-name symmetry constraints to ase-index matrix format."""
-   symm_names = parse_symmetry(file_name=symmetry_file)
    symm_groups = symmetry_names_to_index_groups(symm_names, ase2pmd)
    n_atoms = len(ase2pmd)
    D_matrix, Q_vector = symmetry_groups_to_matrix(symm_groups, n_atoms)
    return D_matrix, Q_vector
+
 
 def make_group_constraints(charge_groups, group_q, n_atoms):
    """Transform atom-name group charge group constraints to ase-index matrix form."""
@@ -266,11 +266,43 @@ def stack_constraints(group_matrix, group_q, symmetry_matrix, symmetry_q):
       return None, None
 
 
+def make_atom_name_constraints(ase2pmd):
+   """Construct constraints for atoms of same name to have equal charge across residues."""
+   # Extract unique atom names
+   unique_names = []
+   for ase_index, atom_residuum in ase2pmd.items():
+      if atom_residuum[0] not in unique_names:
+         unique_names += [atom_residuum[0]]
+
+   name_groups = {}
+   for name in unique_names:
+      name_groups[name] = []
+
+   # At which indices do atom names occur?
+   for name in unique_names:
+      for ase_index, atom_residuum in ase2pmd.items():
+         if name in atom_residuum:
+            name_groups[name] += [ase_index]
+
+   # Keep name-groups with at least two members, don't need the rest 
+   groups = []
+   for name, index_list in name_groups.items():
+      if len(index_list) > 1:
+         groups += [index_list]
+
+   # Transform the groups to matrix form
+   D_matrix, Q_vector = symmetry_groups_to_matrix(groups, n_atoms=len(ase2pmd))
+
+   return D_matrix, Q_vector
+
+
 def get_constraints(args, ase2pmd):
    '''Read provided constraint files and convert them into matrix form.'''
    charge_group_file = args.charge_groups
    charge_group_charges_file = args.charge_group_charges
    symmetry_file = args.symmetry_file
+
+   name_matrix, name_q = make_atom_name_constraints(ase2pmd)
    
    if charge_group_file is not None:
       if charge_group_charges_file is None:
@@ -288,7 +320,8 @@ def get_constraints(args, ase2pmd):
 
    if symmetry_file is not None:
       symmetry = parse_symmetry(symmetry_file)
-      symmetry_matrix, symmetry_q = make_symmetry_constraints(symmetry_file, ase2pmd)
+      print(symmetry)
+      symmetry_matrix, symmetry_q = make_symmetry_constraints(symmetry, ase2pmd)
    else:
       symmetry_matrix, symmetry_q = None, None
 
@@ -405,7 +438,7 @@ def main():
 
    # Look up the relationship between ASE indices, atom names
    pmd_struct, pmd_top, ase2pmd = create_structure(args.pdb_infile, args.top_infile, 
-                     args.hydrogen_file)
+                                                   args.hydrogen_file)
 
    # Import A and B matrices from HORTON
    A, B = read_horton_cost_function(args.horton_cost_function)
