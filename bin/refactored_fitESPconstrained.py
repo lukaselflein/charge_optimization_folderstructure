@@ -9,6 +9,7 @@ import argparse
 import h5py
 import warnings
 import ase.io
+import sympy
 
 import parmed as pmd
 import numpy as np
@@ -17,6 +18,7 @@ import matplotlib.pyplot as plt
 
 from smamp.insertHbyList import insertHbyList
 from smamp.tools import read_atom_numbers
+
 
 def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,CL'):
     """Build ase-format atomic structure descriptions.
@@ -249,23 +251,6 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
    return D_matrix, Q_vector
 
 
-def stack_constraints(group_matrix, group_q, symmetry_matrix, symmetry_q):
-   """Transform all constraint matrices into a single matrix."""
-   if all([x is not None for x in (group_matrix, group_q, symmetry_matrix, symmetry_q)]):
-      constraint_matrix = np.concatenate((group_matrix, symmetry_matrix), axis=0)
-      constraint_q = np.concatenate((group_q, symmetry_q), axis=0)
-      return constraint_matrix, constraint_q
-
-   if group_matrix is None and symmetry_matrix is not None:
-      return symmetry_matrix, symmetry_q
-
-   if group_matrix is not None and symmetry_matrix is None:
-      return group_matrix, group_q
-
-   else:
-      return None, None
-
-
 def make_atom_name_constraints(ase2pmd):
    """Construct constraints for atoms of same name to have equal charge across residues."""
    # Extract unique atom names
@@ -291,9 +276,68 @@ def make_atom_name_constraints(ase2pmd):
          groups += [index_list]
 
    # Transform the groups to matrix form
+   groups = np.array(groups)
    D_matrix, Q_vector = symmetry_groups_to_matrix(groups, n_atoms=len(ase2pmd))
 
    return D_matrix, Q_vector
+
+
+def nonsingular_concat(X, vector):
+   """Appends vector to matrix X iff the resulting matrix is nonsingular.
+
+   Args: 
+      X (np.array): NxM Matrix to be appended to
+      vector (np.array): Nx1 vector to be appended to X
+
+   Returns:
+      new_X (np.array): Nx(M+1) Matrix or None
+   """ 
+   # Cast vector to matrix
+   vector = np.atleast_2d(vector)
+   # Append vector as new row at bottom of matrix
+   new_X = np.concatenate((X, vector), axis=0)
+
+   # Check if matrix is still non-singular
+   if new_X.shape[0] == np.linalg.matrix_rank(new_X):
+      return new_X
+   else:
+      return None
+
+
+def stack_constraints(X, Q_x, Y, Q_y):
+   """Transform two constraint matrices/vector pairs into a single pair.
+
+   Args:
+      X (np.array): Constraint matrix to be appended to
+      Y (np.array): Constraint matrix to be conatenated
+      Q_x (np.array): The constraint charges corresponding to X
+      Q_y (np.array): Constraint charges corresponding to Y
+   """
+
+   con_matrix = X.copy()
+   con_q = Q_x.copy()
+
+   if all([obj is not None for obj in (X, Y, Q_x, Q_y)]):
+      for row in range(Y.shape[0]):
+         new_matrix = nonsingular_concat(con_matrix, Y[row, :])
+         if new_matrix is not None:
+            con_matrix = new_matrix
+            con_q = np.concatenate((con_q, np.atleast_1d(Q_y[row])))
+         else:
+            with open('dropped_constraints.txt', 'ab') as outfile:
+               np.savetxt(outfile, Y[row, :], fmt='%d', newline=" ")
+               outfile.write(b'\n')
+
+   return con_matrix, con_q
+
+   if X is None and (Y is not None and Q_y is not None):
+      return Y, Q_y
+
+   if (X is not None and Q_x is not None) and Y is None:
+      return X, Q_x
+
+   else:
+      raise ValueError('Invalid mixture of empty and non-empty constraints')
 
 
 def get_constraints(args, ase2pmd):
@@ -320,17 +364,19 @@ def get_constraints(args, ase2pmd):
 
    if symmetry_file is not None:
       symmetry = parse_symmetry(symmetry_file)
-      print(symmetry)
       symmetry_matrix, symmetry_q = make_symmetry_constraints(symmetry, ase2pmd)
    else:
       symmetry_matrix, symmetry_q = None, None
 
-   constraint_matrix, constraint_q = stack_constraints(group_matrix, group_q,
-                                        symmetry_matrix, symmetry_q)
+   group_symm_matrix, group_symm_q = stack_constraints(group_matrix, group_q,
+                                                       symmetry_matrix, symmetry_q)
+   constraint_matrix, constraint_q = stack_constraints(group_symm_matrix, group_symm_q,
+                                                       name_matrix, name_q)
 
-   # Remove redunant constraints
-   pass
-   
+   np.savetxt('symm_matrix.txt', symmetry_matrix, fmt='%d')
+   np.savetxt('name_matrix.txt', name_matrix, fmt='%d')
+   np.savetxt('group_matrix.txt', group_matrix, fmt='%d')
+   np.savetxt('constraint_matrix.txt', constraint_matrix, fmt='%d')
    return constraint_matrix, constraint_q
 
 
@@ -436,18 +482,22 @@ def main():
    # Read command line arguments
    args = parse_command_line()
 
+   print('Extracting structure via ASE ...')
    # Look up the relationship between ASE indices, atom names
    pmd_struct, pmd_top, ase2pmd = create_structure(args.pdb_infile, args.top_infile, 
                                                    args.hydrogen_file)
+   print('Atomic structure built.')
 
    # Import A and B matrices from HORTON
    A, B = read_horton_cost_function(args.horton_cost_function)
 
    # Calculate constraints
    logic_constraints, charge_constraints = get_constraints(args, ase2pmd=ase2pmd)
+   print('Constraints caluclated, {} remaining.'.format(logic_constraints.shape[0]))
 
    # Run the constrained minimization
    q, f = constrained_minimize(A, B, logic_constraints, charge_constraints)
+   print('Constrained minimization done.')
 
    q_unconstrained = unconstrained_minimize(A, B)
 
@@ -456,6 +506,7 @@ def main():
 
    # Save Lagrange forces
    write_forces(f, logic_constraints, ase2pmd)
+   print('Charges and forces written.')
    print('Done.')
    
 
