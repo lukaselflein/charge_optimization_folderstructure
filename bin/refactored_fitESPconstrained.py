@@ -154,25 +154,36 @@ def parse_charge_groups(file_name, ase2pmd):
    df = pd.read_csv(file_name, sep=',', header=None,
           comment='#', names=['atom','cg'])
 
+   # Charge groups are independent on residue.
+   # Find unique residue names first 
+   residue = []
+   for ase_index, atom_residuum in ase2pmd.items():
+         residue += [atom_residuum[1]]
+   residue = list(set(residue))
+   print(residue)
+   
    # Atoms appear in multiple charge groups.
    # In the end, we want something like
    # {cg1: [1, 5, 8]}
    charge_groups = {}
-   for atom in df.atom:
-      # cg is the charge group of the current atom
-      cg = df.loc[df.atom == atom].cg.values[0]
-      if not cg in charge_groups.keys():
-         charge_groups[cg] = []        
-
-      # ase2pmd is formatted like
-      # 0: ('CE1', 'terB')
-      for ase_index, atom_residuum in ase2pmd.items():
-         # If the atom names match, pick the ase index            
-         if atom in atom_residuum:
-            charge_groups[cg] += [ase_index]
+   for res_index in range(len(residue)):
+      for atom in df.atom:
+         # cg is the charge group of the current atom
+         cg = df.loc[df.atom == atom].cg.values[0] - 1 + res_index * df.cg.max()
+         # ase2pmd is formatted like
+         # 0: ('CE1', 'terB')
+         for ase_index, atom_residuum in ase2pmd.items():
+            # If the atom names match, pick the ase index            
+            if atom in atom_residuum:
+               if residue[res_index] in atom_residuum:
+                  if not cg in charge_groups.keys():
+                     charge_groups[cg] = []        
+                  charge_groups[cg] += [ase_index]
    # Sort everything                
    for ase_index in charge_groups.keys():
       charge_groups[ase_index].sort()
+
+   print(charge_groups)
 
    return charge_groups
 
@@ -235,19 +246,41 @@ def make_symmetry_constraints(symm_names, ase2pmd):
 def make_group_constraints(charge_groups, group_q, n_atoms):
    """Transform atom-name group charge group constraints to ase-index matrix form."""
    # Initialize empty arrays
-   D_matrix = np.zeros((len(charge_groups), n_atoms), dtype=int)
-   Q_vector = np.zeros(len(charge_groups), dtype=int)
+   D_matrix = None 
+   Q_vector = None
 
    # Fill in constraint values for every charge group
-   for ase_index in charge_groups.keys():
-      cg = charge_groups[ase_index]
+   for group_index in charge_groups.keys():
+      cg = charge_groups[group_index]
       # Note: Charge groups are [1, 2, ...], np indices are [0, 1, ..]
       # 1 means that the sum of q_i in the charge group is unweighted
-      D_matrix[ase_index - 1, cg] = 1
+      constraint = np.zeros((1, n_atoms))
+      constraint[0, cg] = 1
+      if D_matrix is None:
+         D_matrix = constraint
+      else:
+         D_matrix = np.concatenate((D_matrix, constraint), axis=0)
 
       # Now we need to specify the total charge of the group in a vector
-      total_group_charge = group_q.loc[ase_index]
-      Q_vector[ase_index - 1] = total_group_charge
+      # Charge groups defined in file are numbered 1..11, but exist on multiple residue.
+      # Thus, we map group indices from 0..32 to 1..11:
+
+      ############################## TODO: Fix, this is still wrong!!
+      if group_index < len(group_q):
+         q_index = group_index
+      else:
+         q_index = group_index % len(group_q) + 1
+      ######################################
+
+      print(group_index, q_index)
+      total_group_charge = group_q.loc[q_index].values[0]
+      if Q_vector is None:
+         Q_vector = np.atleast_1d(total_group_charge)
+      else:
+         Q_vector = np.concatenate((Q_vector, np.atleast_1d(total_group_charge)))
+
+   print(Q_vector, group_q)
+   print(D_matrix, charge_groups)
    return D_matrix, Q_vector
 
 
