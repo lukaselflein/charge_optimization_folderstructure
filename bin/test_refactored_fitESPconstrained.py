@@ -100,6 +100,10 @@ class TestGroupConstraints(unittest.TestCase):
       np.testing.assert_allclose(D_matrix, correct_constraints)
 
    def test_multiple_residue(self):
+      """Are charge groups defined for each residuum seperately?"""
+
+   def test_different_charges(self):
+      """Do groups get assigned their respective charges?"""
       pass
 
 
@@ -107,6 +111,7 @@ class TestAtomNameConstraints(unittest.TestCase):
    """Tests for make_atom_name_constraints(ase2pmd)"""
 
    def simple_dict(self):
+      """Are atoms of same name constrained to have equal charge?"""
       ase2pmd = {0: ('CA1', 'terA'), 1: ('CA1', 'terB'), 2: ('CA1', 'terC')}
       correct_constraints = np.array([[ 1, -1,  0],
                                       [ 1,  0, -1]]) 
