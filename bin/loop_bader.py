@@ -44,15 +44,17 @@ def main():
 					  "stderr": subprocess.STDOUT}
 				# Execute the shell command
 				print('Running bader ...')
-				p = subprocess.Popen(command, **kwargs)
+				#p = subprocess.Popen(command, **kwargs)
 
 				# Wait for the shell command to finish
-				p.communicate()
+				#p.communicate()
 
 				# Extract charges from the bader anaylsis output to .csv
 				print('Bader done. Extracting bader charges ...')
+				hyd_path = '../../../fitting_constraint_files/hydrogen_per_atom.csv'
 				smamp.extract_bader_charges.extract(snapshot_path,
-								    top_path)
+								    top_path,
+								    hydrogen_path=hyd_path)
 				print('Extraction done.')
 
 	print('Done.')
