@@ -24,11 +24,13 @@ def default_style(func):
 	return wrapper
 
 
-def make_edgecolor(ax):
+def make_edgecolor(ax, color=None):
 	"""Make boxes transparent with colored edges & whiskers"""
 	for i,artist in enumerate(ax.artists):
 		# Set the linecolor on the artist to the facecolor, and set the facecolor to None
 		col = artist.get_facecolor()
+		if color is not None:
+			col = color
 		artist.set_edgecolor(col)
 		artist.set_facecolor('None')
 
@@ -50,11 +52,8 @@ def boxplot(df, out_path):
 	ax = bp.axes
 	ax.grid(True)  # Show horizontal gridlines
 	make_edgecolor(ax)
-
 	bp.set_title('Distribution of charges with different calculation methods')
-
 	bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
-
 
 @default_style
 def pointplot(df, out_path, variant='constrained'):
@@ -87,6 +86,19 @@ def average_pointplot(df, out_path):
 	pp.axes.grid(True)  # Show horizontal gridlines
 	pp.figure.savefig(os.path.join(out_path, 'averages.png'))
 
+@default_style
+def box_and_swarm(df, out_path, variant):
+	""" Plot constrained charges with box and swarm plot at same time."""
+
+	c_df = df.loc[df['Calculation Variant'] == variant]
+	sp = sns.swarmplot('charge', 'atom', data=c_df, hue='timestamp')
+	ax = sp.axes
+	bp = sns.boxplot(x='charge', y='atom', hue='Calculation Variant', data=c_df, whis=100, ax=ax)
+
+	ax.grid(True)  # Show horizontal gridlines
+	make_edgecolor(ax, color='black')
+	bp.figure.savefig(os.path.join(out_path, 'combined_box_swarm_{}.png'.format(variant)))
+
 def main():
 	"""Execute everything. """
 	print('This is {}.'.format(__file__))
@@ -100,14 +112,18 @@ def main():
 
 	print('Plotting ... ')
 
+
 	# Pointplot to compare mean values
 	average_pointplot(collect_df, out_path=out_path)
 	print('Average plot saved.')
 
-	# Swarmplot charges to resolve timestamp differences
 	for variant in ('constrained', 'unconstrained', 'bader'):
+		# Swarmplot charges to resolve timestamp differences
 		swarmplot(collect_df, out_path=out_path, variant=variant)
 		print('Swarmplot of {} saved.'.format(variant))
+		# Box and swarm in one plot
+		box_and_swarm(df=collect_df, out_path=out_path, variant=variant)
+		print('Combined box-and-swarm plot of {} saved.'.format(variant))
 
 	# Boxplot charges to get min/max errorbars
 	boxplot(collect_df, out_path=out_path)
