@@ -160,7 +160,6 @@ def parse_charge_groups(file_name, ase2pmd):
    for ase_index, atom_residuum in ase2pmd.items():
          residue += [atom_residuum[1]]
    residue = list(set(residue))
-   print(residue)
    
    # Atoms appear in multiple charge groups.
    # In the end, we want something like
@@ -169,7 +168,8 @@ def parse_charge_groups(file_name, ase2pmd):
    for res_index in range(len(residue)):
       for atom in df.atom:
          # cg is the charge group of the current atom
-         cg = df.loc[df.atom == atom].cg.values[0] - 1 + res_index * df.cg.max()
+         # cg = df.loc[df.atom == atom].cg.values[0] - 1 + res_index * df.cg.max()
+         cg = df.loc[df.atom == atom].cg.values[0] + res_index * 1000
          # ase2pmd is formatted like
          # 0: ('CE1', 'terB')
          for ase_index, atom_residuum in ase2pmd.items():
@@ -182,8 +182,6 @@ def parse_charge_groups(file_name, ase2pmd):
    # Sort everything                
    for ase_index in charge_groups.keys():
       charge_groups[ase_index].sort()
-
-   print(charge_groups)
 
    return charge_groups
 
@@ -263,24 +261,15 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
 
       # Now we need to specify the total charge of the group in a vector
       # Charge groups defined in file are numbered 1..11, but exist on multiple residue.
-      # Thus, we map group indices from 0..32 to 1..11:
+      # Thus, we map group indices back from 1001..1011 to 1..11:
+      q_index = group_index % 1000
 
-      ############################## TODO: Fix, this is still wrong!!
-      if group_index < len(group_q):
-         q_index = group_index
-      else:
-         q_index = group_index % len(group_q) + 1
-      ######################################
-
-      print(group_index, q_index)
       total_group_charge = group_q.loc[q_index].values[0]
       if Q_vector is None:
          Q_vector = np.atleast_1d(total_group_charge)
       else:
          Q_vector = np.concatenate((Q_vector, np.atleast_1d(total_group_charge)))
 
-   print(Q_vector, group_q)
-   print(D_matrix, charge_groups)
    return D_matrix, Q_vector
 
 
@@ -526,7 +515,7 @@ def main():
 
    # Calculate constraints
    logic_constraints, charge_constraints = get_constraints(args, ase2pmd=ase2pmd)
-   print('Constraints caluclated, {} remaining.'.format(logic_constraints.shape[0]))
+   print('Constraints caluclated: {} non-redunant.'.format(logic_constraints.shape[0]))
 
    # Run the constrained minimization
    q, f = constrained_minimize(A, B, logic_constraints, charge_constraints)
