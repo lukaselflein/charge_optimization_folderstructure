@@ -22,7 +22,7 @@ from smamp.tools import read_atom_numbers
 
 def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,CL'):
     """Build ase-format atomic structure descriptions.
-    Especially useful is a dictionary listing the relationship between ase indices and atom names.
+    Especially useful is the dictionary listing the relationship between ase indices and atom names.
 
     Args:
        infile_pdb (str): path to the gromacs structure file
@@ -40,44 +40,26 @@ def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,C
         
     ua_ase_struct = ase.io.read(infile_pdb)
     ua_pmd_struct = pmd.load_file(infile_pdb)
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ua_pmd_top = pmd.gromacs.GromacsTopologyFile(infile_top,parametrize=False)
+        ua_pmd_top = pmd.gromacs.GromacsTopologyFile(infile_top, parametrize=False)
 
+    # strip water and electrolyte from system (if not yet done in .top)
     ua_pmd_top.strip(strip_string)
-        #strip water and electrolyte from system (if not yet done in .top)
     ua_pmd_top.box = ua_pmd_struct.box # Needed because .pdb contains box info
     ua_pmd_top.positions = ua_pmd_struct.positions
 
     ua_names = [ a.name for a in ua_pmd_top.atoms ]
     ua_residues = [ a.residue.name for a in ua_pmd_top.atoms ]
 
-    aa_ase_struct, aa_pmd_struct, aa_names, aa_residues = \
-        insertHbyList(ua_ase_struct,ua_pmd_top,
-        implicitHbondingPartners,1.0)
+    ua_ase_index = np.arange(len(ua_ase_struct))
 
-    ua_count = len(ua_ase_struct)     # united atoms structure
-    aa_count = len(aa_ase_struct) # all atoms structure
+    ua_atom_residue_list = list(zip(ua_names, ua_residues))
+    ua_ase2pmd = dict(zip(ua_ase_index, ua_atom_residue_list))
+    ua_pmd2ase = dict(zip(ua_atom_residue_list, ua_ase_index))
 
-    ua_ase_index = np.arange(ua_count)
-    aa_ase_index = np.arange(aa_count)
-
-    aa_atom_residue_list = list(zip(aa_names,aa_residues))
-    aa_ase_index = range(aa_count)
-    aa_ase2pmd = dict(zip(aa_ase_index,aa_atom_residue_list))
-    aa_pmd2ase = dict(zip(aa_atom_residue_list,aa_ase_index))
-
-    ua_atom_residue_list = list(zip(ua_names,ua_residues))
-    ua_ase_index = range(ua_count)
-    ua_ase2pmd = dict(zip(ua_ase_index,ua_atom_residue_list))
-    ua_pmd2ase = dict(zip(ua_atom_residue_list,ua_ase_index))
-
-    # TODO: distinction for ua and aa fitting:
-    pmd_struct = ua_pmd_struct
-    pmd_top = ua_pmd_top
-    ase2pmd = ua_ase2pmd
-    pmd2ase = ua_pmd2ase
-    return pmd_struct, pmd_top, ase2pmd
+    return ua_pmd_struct, ua_pmd_top, ua_ase2pmd
 
 def constrained_minimize(A, B, D=None, Q=None):
    """Find the minimum of the HORTON cost function.
@@ -149,7 +131,7 @@ def unconstrained_minimize(A, B):
 
 
 def parse_charge_groups(file_name, ase2pmd):
-   """Read the charge group file."""
+   """Read the charge group definition file."""
    # first we read in the textfile
    df = pd.read_csv(file_name, sep=',', header=None,
           comment='#', names=['atom','cg'])
@@ -255,7 +237,7 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
       constraint = np.zeros((1, n_atoms))
       constraint[0, cg] = 1
       if D_matrix is None:
-         D_matrix = constraint
+         D_matrix = constraint.copy()
       else:
          D_matrix = np.concatenate((D_matrix, constraint), axis=0)
 
@@ -266,7 +248,7 @@ def make_group_constraints(charge_groups, group_q, n_atoms):
 
       total_group_charge = group_q.loc[q_index].values[0]
       if Q_vector is None:
-         Q_vector = np.atleast_1d(total_group_charge)
+         Q_vector = np.atleast_1d(total_group_charge).copy()
       else:
          Q_vector = np.concatenate((Q_vector, np.atleast_1d(total_group_charge)))
 
@@ -368,8 +350,10 @@ def get_constraints(args, ase2pmd):
    charge_group_charges_file = args.charge_group_charges
    symmetry_file = args.symmetry_file
 
+   # Constraints for atoms of same name to have same charge
    name_matrix, name_q = make_atom_name_constraints(ase2pmd)
    
+   # Constraints for atoms of one group to have specified sum of charges
    if charge_group_file is not None:
       if charge_group_charges_file is None:
          err = 'Charge groups defined: {}'.format(charge_group_file)
@@ -380,16 +364,17 @@ def get_constraints(args, ase2pmd):
       group_q = parse_group_charges(charge_group_charges_file)
       n_atoms = len(ase2pmd)
       group_matrix, group_q = make_group_constraints(charge_groups, group_q, n_atoms)
-
    else:
       group_matrix, group_q = None, None
 
+   # Constraints for pair-wise symmetric atoms to have equal charge
    if symmetry_file is not None:
       symmetry = parse_symmetry(symmetry_file)
       symmetry_matrix, symmetry_q = make_symmetry_constraints(symmetry, ase2pmd)
    else:
       symmetry_matrix, symmetry_q = None, None
 
+   # Combine individual matrices to one matrix (enforces non-singularity)
    group_symm_matrix, group_symm_q = stack_constraints(group_matrix, group_q,
                                                        symmetry_matrix, symmetry_q)
    constraint_matrix, constraint_q = stack_constraints(group_symm_matrix, group_symm_q,
