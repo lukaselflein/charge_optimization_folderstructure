@@ -17,23 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from smamp.insertHbyList import insertHbyList
-
-def read_atom_numbers(path='../fitting_constraint_files/hydrogen_per_atom.csv'):
-	"""Determines number of explicit Hydrogen atoms per Carbon from a table.
-	Arguments
-	path: Path to the table.
-
-	Returns:
-	hydrogen_per_atom: dictionary mapping atom names to number of hydrogens to insert.
-	"""
-	df = pd.read_csv(path)
-	df = df.set_index('atom', drop=True)
-	# target = {'CD4':1,'CD3':1,'CA2':2,'CA3':2,'CB2':2,'CB3':2}
-	hydrogen_per_atom = df.to_dict()[df.columns[0]]
-
-	return hydrogen_per_atom
-
-
+from smamp.tools import read_atom_numbers
 
 
 def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,CL'):
@@ -53,7 +37,6 @@ def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,C
     """
         
     implicitHbondingPartners = read_atom_numbers(hydrogen_file)
-    print(implicitHbondingPartners)
         
     ua_ase_struct = ase.io.read(infile_pdb)
     ua_pmd_struct = pmd.load_file(infile_pdb)
@@ -65,8 +48,6 @@ def create_structure(infile_pdb, infile_top, hydrogen_file, strip_string=':SOL,C
     # strip water and electrolyte from system (if not yet done in .top)
     ua_pmd_top.strip(strip_string)
     ua_pmd_top.box = ua_pmd_struct.box # Needed because .pdb contains box info
-    print(len(ua_pmd_struct.positions))
-    print(ua_pmd_top.positions)
     ua_pmd_top.positions = ua_pmd_struct.positions
 
     ua_names = [ a.name for a in ua_pmd_top.atoms ]
@@ -190,7 +171,7 @@ def parse_group_charges(file_name):
    """Read the file specifying total charges of each charge group."""
    group_q = pd.read_csv(file_name, sep=',', header=None, comment='#',
                          names=['charge'], index_col=0)
-   group_q.charge = group_q.charge.astype(int)    
+   group_q.charge = group_q.charge.astype(float)    
    return group_q
 
 def parse_symmetry(file_name):
@@ -359,7 +340,7 @@ def stack_constraints(X, Q_x, Y, Q_y):
             con_matrix = new_matrix
             con_q = np.concatenate((con_q, np.atleast_1d(Q_y[row])))
          else:
-            with open('dropped_constraints.txt', 'ab') as outfile:
+            with open('dropped_constraints.log', 'ab') as outfile:
                np.savetxt(outfile, Y[row, :], fmt='%d', newline=" ")
                outfile.write(b'\n')
 
@@ -368,7 +349,7 @@ def stack_constraints(X, Q_x, Y, Q_y):
    raise ValueError('Invalid mixture of empty and non-empty constraints')
 
 
-def get_constraints(args, ase2pmd):
+def get_constraints(args, ase2pmd, debug=True):
    '''Read provided constraint files and convert them into matrix form.'''
    charge_group_file = args.charge_groups
    charge_group_charges_file = args.charge_group_charges
@@ -404,14 +385,16 @@ def get_constraints(args, ase2pmd):
    constraint_matrix, constraint_q = stack_constraints(group_symm_matrix, group_symm_q,
                                                        name_matrix, name_q)
 
-   if symmetry_matrix is not None:
-      np.savetxt('symm_matrix.txt', symmetry_matrix, fmt='%d')
-   if name_matrix is not None:
-      np.savetxt('name_matrix.txt', name_matrix, fmt='%d')
-   if group_matrix is not None:
-      np.savetxt('group_matrix.txt', group_matrix, fmt='%d')
-   if constraint_matrix is not None:
-      np.savetxt('constraint_matrix.txt', constraint_matrix, fmt='%d')
+   if debug:
+      if symmetry_matrix is not None:
+         np.savetxt('symm_matrix.log', symmetry_matrix, fmt='%d')
+      if name_matrix is not None:
+         np.savetxt('name_matrix.log', name_matrix, fmt='%d')
+      if group_matrix is not None:
+         np.savetxt('group_matrix.log', group_matrix, fmt='%d')
+         np.savetxt('group_charges.log', group_q, fmt='%f')
+      if constraint_matrix is not None:
+         np.savetxt('constraint_matrix.log', constraint_matrix, fmt='%d')
    return constraint_matrix, constraint_q
 
 
@@ -514,6 +497,7 @@ def write_forces(forces, logic_constraints, ase2pmd):
 def main():
    '''Read the constraints, transform them into matrix form, 
    and then use them to fit the point charges.'''
+   print('This is "{}".'.format(__file__))
    # Read command line arguments
    args = parse_command_line()
 
