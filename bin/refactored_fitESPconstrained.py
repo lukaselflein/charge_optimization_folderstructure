@@ -318,10 +318,22 @@ def stack_constraints(X, Q_x, Y, Q_y):
       Q_y (np.array): Constraint charges corresponding to Y
    """
 
-   con_matrix = X.copy()
-   con_q = Q_x.copy()
+   # All constraints are empty
+   if all([obj is None for obj in (X, Y, Q_x, Q_y)]):
+      return X, Q_x
 
+   # First constraint set is empty, second one full
+   if X is None and (Y is not None and Q_y is not None):
+      return Y, Q_y
+
+   # Exactly the first set is non-empty
+   if (X is not None and Q_x is not None) and Y is None:
+      return X, Q_x
+
+   # Both sets of constraints are non-empty
    if all([obj is not None for obj in (X, Y, Q_x, Q_y)]):
+      con_matrix = X.copy()
+      con_q = Q_x.copy()
       for row in range(Y.shape[0]):
          new_matrix = nonsingular_concat(con_matrix, Y[row, :])
          if new_matrix is not None:
@@ -332,16 +344,9 @@ def stack_constraints(X, Q_x, Y, Q_y):
                np.savetxt(outfile, Y[row, :], fmt='%d', newline=" ")
                outfile.write(b'\n')
 
-   return con_matrix, con_q
+      return con_matrix, con_q
 
-   if X is None and (Y is not None and Q_y is not None):
-      return Y, Q_y
-
-   if (X is not None and Q_x is not None) and Y is None:
-      return X, Q_x
-
-   else:
-      raise ValueError('Invalid mixture of empty and non-empty constraints')
+   raise ValueError('Invalid mixture of empty and non-empty constraints')
 
 
 def get_constraints(args, ase2pmd):
@@ -380,10 +385,14 @@ def get_constraints(args, ase2pmd):
    constraint_matrix, constraint_q = stack_constraints(group_symm_matrix, group_symm_q,
                                                        name_matrix, name_q)
 
-   np.savetxt('symm_matrix.txt', symmetry_matrix, fmt='%d')
-   np.savetxt('name_matrix.txt', name_matrix, fmt='%d')
-   np.savetxt('group_matrix.txt', group_matrix, fmt='%d')
-   np.savetxt('constraint_matrix.txt', constraint_matrix, fmt='%d')
+   if symmetry_matrix is not None:
+      np.savetxt('symm_matrix.txt', symmetry_matrix, fmt='%d')
+   if name_matrix is not None:
+      np.savetxt('name_matrix.txt', name_matrix, fmt='%d')
+   if group_matrix is not None:
+      np.savetxt('group_matrix.txt', group_matrix, fmt='%d')
+   if constraint_matrix is not None:
+      np.savetxt('constraint_matrix.txt', constraint_matrix, fmt='%d')
    return constraint_matrix, constraint_q
 
 
@@ -502,9 +511,13 @@ def main():
    logic_constraints, charge_constraints = get_constraints(args, ase2pmd=ase2pmd)
    print('Constraints caluclated: {} non-redunant.'.format(logic_constraints.shape[0]))
 
+   # print(logic_constraints, '\n', charge_constraints)
+
    # Run the constrained minimization
    q, f = constrained_minimize(A, B, logic_constraints, charge_constraints)
    print('Constrained minimization done.')
+   print('Extremal charges: {:1.5f}, {:1.5f}'.format(q.min(), q.max()))
+   print('Extremal Lagrange forces: {:1.5f}, {:1.5f}'.format(f.min(), f.max()))
 
    q_unconstrained = unconstrained_minimize(A, B)
 
