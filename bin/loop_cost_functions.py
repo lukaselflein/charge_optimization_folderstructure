@@ -6,15 +6,17 @@ Author: Lukas Elflein <elfleinl@cs.uni-freiburg.de>
 
 import os
 import subprocess
+import argparse
 from smamp.tools import cd
 from smamp.tools import check_existence
 
-def calc_cost_function(path):
+def calc_cost_function(path, lnrho=-9, sigma=0.8, output_file="cost.h5"):
 	""" Call the horton script."""
 	command = "horton-esp-cost.py"
 	esp_file = " ../3_united_atom_structure/esp_ua.cube"
-	output_file= " cost.h5"
+	output_file = ' ' + output_file
 	density_file = " --wdens ../3_united_atom_structure/rho_ua.cube"
+	density_file += ":{}:{}".format(lnrho, sigma)
 	boundary_option = " --pbc 000 "
 	sign_option = "--sign "  # changes sign
 	overwrite = "--overwrite "
@@ -33,11 +35,25 @@ def calc_cost_function(path):
 		subprocess.Popen(command, **kwargs).communicate()
 	# print('Calculation started, horton returned {}'.format(output.decode('ascii')))
 
+def cmd_parser():
+	parser = argparse.ArgumentParser(prog='',
+					 description='Discover input files and calc cost functions.')
+	
+	parser.add_argument('--lnrho', metavar=-9,
+        help='Value of the lnrho reference parameter for HORTON cost function construction.',
+	default=-9)
+
+	args = parser.parse_args()
+
+	return args.lnrho
+
 
 def main():
 	""" Execute everything."""
 	print('This is {}.'.format(__file__))
 	print('Current working dir: {}'.format(os.getcwd()))
+
+	lnrho =  cmd_parser()
 
 	# Crawl the directory structure
 	for subdir, dirs, files in sorted(os.walk('.')):
@@ -65,7 +81,7 @@ def main():
 			elif warning is None:
 				# print('Calculating: {}'.format(subdir))
 				with cd(subdir):
-					calc_cost_function(subdir)
+					calc_cost_function(subdir, lnrho=lnrho)
 	print('Done.')
 
 if __name__ == '__main__':
