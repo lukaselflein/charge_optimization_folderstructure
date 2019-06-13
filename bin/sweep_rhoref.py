@@ -17,16 +17,22 @@ def iterate_lnrho(path_to_subdir):
 	"""Vary the lnrho weighting parameter, create folder and execute."""
 	sweep_dir = 'lnrho_sweep'
 	if os.path.exists(sweep_dir):
-		print('Removing old dir')
-		shutil.rmtree(sweep_dir)
-	print('making dir')
-	os.mkdir(sweep_dir)
-	print('dir made.')
+		# print('Removing old dir')
+		# shutil.rmtree(sweep_dir)
+		pass
+	else:
+		print('making dir')
+		os.mkdir(sweep_dir)
+		print('dir made.')
 
 	print('Iterating overt lnrho:')#, end=' ')
-	for lnrho in range(-9, 0):
+	for lnrho in range(-10, 0):
 		output_name = os.path.join(sweep_dir, 'cost_{}.h5'.format(lnrho))
 		print(output_name)#, end=' ')
+		if os.path.exists(output_name):
+			print('{} exists. Skipping ahead.')
+			continue
+
 		calc_cost_function(path_to_subdir, 
 				   lnrho=lnrho, 
 				   sigma=0.8, 
