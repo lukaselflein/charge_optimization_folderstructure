@@ -161,7 +161,7 @@ def export(A, B, template_path='./average_cost.h5'):
 	assert np.allclose(f['cost/A'][()], A)
 	assert np.allclose(f['cost/B'][()], B)
 
-	print('\nData has been written to {}'.format(template_path))
+	print('Data has been written to {}\n'.format(template_path))
 
 def main():
 	""" Run the script."""
