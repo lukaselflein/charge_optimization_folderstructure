@@ -29,9 +29,10 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
    # Import A and B matrices from HORTON
    A, B = read_horton_cost_function(horton_cost_function)
 
-   charge_group_file = None 
-   charge_group_charges_file = None
-   symmetry_file = None
+   charge_group_file = find('..', 'fitting_constraint_files', 'atoms_in_charge_group.csv')[0]
+   charge_group_charges_file = find('..', 'fitting_constraint_files', 
+				    'charge_group_total_charge.csv')[0]
+   symmetry_file = find('..', 'fitting_constraint_files', 'atoms_of_same_charge.csv')[0]
 
    # Calculate constraints
    logic_constraints, charge_constraints = get_constraints(args=None, ase2pmd=ase2pmd, 
@@ -40,7 +41,7 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
                                                     symmetry_file=symmetry_file,
                                                     debug=False)
 
-   print('Constraints caluclated: {} non-redunant.'.format(logic_constraints.shape[0]))
+   print('Constraints calculated: {} non-redunant.'.format(logic_constraints.shape[0]))
 
    # Run the constrained minimization
    q, f = constrained_minimize(A, B, logic_constraints, charge_constraints)
@@ -85,7 +86,7 @@ def main():
 
 		for cost_file in cost_paths:
 			folder = os.path.split(cost_file)[0]
-			output_file = os.path.join(folder, 'avg_charges_{}.csv'.format(lnrho))
+			output_file = os.path.join(folder, 'charges_{}.csv'.format(lnrho))
 
 			if os.path.exists(output_file):
 				print('{} exists. Skipping ahead.'.format(cost_file))
@@ -95,7 +96,6 @@ def main():
 			calc_charges(pdb_file, top_file, hyd_file, cost_file, output_file=output_file)
 		
 
-		print(cost_paths)
 	print('Done.')
 
 
