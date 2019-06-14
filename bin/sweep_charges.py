@@ -63,34 +63,40 @@ def main():
 
 	# We need any one top and pdb file for the ordering of atom-names;
 	# The exact snapshot we use does not matter as the ordering is invariant
-        pdb_file = find(path='.', folder_keyword='0_initial_structure', file_keyword='.pdb')[0]
-        top_file = find(path='.', folder_keyword='0_initial_structure', file_keyword='.top')[0]
-        hyd_file = find(path='..', folder_keyword='fitting', file_keyword='hydrogen_per_atom.csv')[0]
+	pdb_file = find(path='.', folder_keyword='0_initial_structure', file_keyword='.pdb')[0]
+	top_file = find(path='.', folder_keyword='0_initial_structure', file_keyword='.top')[0]
+	hyd_file = find(path='..', folder_keyword='fitting', file_keyword='hydrogen_per_atom.csv')[0]
 
 	# Also, we need constraint files
 
 	for lnrho in range(-10, 0):
 		print('lnrho = {} .'.format(lnrho))
+
 		# Find the path for the average cost function
 		cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
 		    	   file_keyword='costfunction_average_{}.h5'.format(lnrho), 
-	 		   nr_occ=1)[0]
-
-		folder = os.path.split(cost_avg)[0]
-		output_file = os.path.join(folder, 'avg_charges_{}.csv'.format(lnrho))
-
-		calc_charges(pdb_file, top_file, hyd_file, cost_avg, output_file=output_file)
-	print('Done.')
-	exit()
-
-	for lnrho in range(-10, 0):
+	 		   nr_occ=1)
 
 		# Find the paths for the unaveraged snapshot cost functions
 		cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
 		    	          file_keyword='cost_{}.h5'.format(lnrho), 
      	 		          nr_occ=None)
+		cost_paths += cost_avg
+
+		for cost_file in cost_paths:
+			folder = os.path.split(cost_file)[0]
+			output_file = os.path.join(folder, 'avg_charges_{}.csv'.format(lnrho))
+
+			if os.path.exists(output_file):
+				print('{} exists. Skipping ahead.'.format(cost_file))
+				continue
+
+			print('Optimizing charges for {}.'.format(cost_file[:18]))
+			calc_charges(pdb_file, top_file, hyd_file, cost_file, output_file=output_file)
+		
 
 		print(cost_paths)
+	print('Done.')
 
 
 if __name__ == '__main__':
