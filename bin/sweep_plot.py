@@ -57,7 +57,7 @@ def collect_snapshots(plot_range=[-9, -5]):
 	for lnrho in plot_range: #range(-10, 0):
 		cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
 				  file_keyword='charges_{}.csv'.format(lnrho), 
-				  nr_occ=1)
+				  nr_occ=None)
 		for charge_file in cost_paths:
 			df = pd.read_csv(charge_file)
 
@@ -100,6 +100,14 @@ def plot_joint(avg_df, snap_df):
 	pp.axes.grid(True)  # Show horizontal gridlines
 	pp.figure.savefig('joint_pointplot.png')
 
+@default_style
+def swarmplot(df):
+	sp = sns.swarmplot('value', 'atom', data=df, hue='lnrho',
+			    palette=sns.color_palette("coolwarm", 10))
+
+	sp.set_title('Individual snapshot charges of all residues')
+	sp.axes.grid(True)  # Show horizontal gridlines
+	sp.figure.savefig('swarmplot.png')
 
 def main():
 	"""Execute everything. """
@@ -107,16 +115,17 @@ def main():
 
 	# Averages
 	print('Collecting averages ...')
-	average_df = collect_averages()
+	# average_df = collect_averages()
 	print('Plotting averages ...')
-	plot_averages(average_df)
+	# plot_averages(average_df)
 
 	# Individual snapshots
 	print('Collecting snapshots ...')
-	snapshot_df = collect_snapshots()
+	snapshot_df = collect_snapshots(plot_range=range(-10, -4))
 	print('Plotting snapshots ...')
 	plot_snapshots(snapshot_df)
-	plot_joint(average_df, snapshot_df)
+	swarmplot(snapshot_df)
+	# plot_joint(average_df, snapshot_df)
 
 	print('Done.')
 
