@@ -126,6 +126,8 @@ def plot_variance(df):
 	fig = plt.figure(figsize=(16,10))
 	sns.set_context("talk", font_scale=0.9)
 	plt.plot(lnrhos, dispersions, marker='o')
+	plt.xlabel('rhoref')
+	plt.ylabel('cumlatative dispersion of charge [e]')
 	plt.savefig('dispersion.png')
 	plt.clf()
 
@@ -141,8 +143,8 @@ def main():
 
 	# Individual snapshots
 	print('Collecting snapshots ...')
-	snapshot_df = collect_snapshots(plot_range=range(-10, -1))
-	plot_variance(snapshot_df)
+	snapshot_df = collect_snapshots(plot_range=[-9, -5]) #range(-9, -5))
+	#plot_variance(snapshot_df)
 	print('Plotting snapshots ...')
 	plot_snapshots(snapshot_df)
 	swarmplot(snapshot_df)
