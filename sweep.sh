@@ -21,5 +21,6 @@ python sweep_charges.py
 
 # Plot charges
 module purge
+module load smamp
 module load devel/python/3.6.5
 python sweep_plot.py
