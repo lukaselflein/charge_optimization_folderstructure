@@ -103,11 +103,31 @@ def plot_joint(avg_df, snap_df):
 @default_style
 def swarmplot(df):
 	sp = sns.swarmplot('value', 'atom', data=df, hue='lnrho',
-			    palette=sns.color_palette("coolwarm", 10))
+			    palette=sns.color_palette("coolwarm", 6))
 
 	sp.set_title('Individual snapshot charges of all residues')
 	sp.axes.grid(True)  # Show horizontal gridlines
 	sp.figure.savefig('swarmplot.png')
+
+def plot_variance(df):
+	dispersions = []
+	lnrhos = []
+	for lnrho in df.lnrho.unique():
+		lnrhos += [lnrho]
+		dispersion = 0
+		rho_df = df.loc[df['lnrho'] == lnrho]
+		for residue in df.residue.unique():
+			res_df = rho_df.loc[rho_df['residue'] == residue]
+			for atom in res_df.atom.unique():
+				atom_df = res_df.loc[res_df['atom'] == atom]
+				dispersion += abs(atom_df.value.max() - atom_df.value.min())
+		dispersions += [dispersion]
+
+	fig = plt.figure(figsize=(16,10))
+	sns.set_context("talk", font_scale=0.9)
+	plt.plot(lnrhos, dispersions, marker='o')
+	plt.savefig('dispersion.png')
+	plt.clf()
 
 def main():
 	"""Execute everything. """
@@ -121,7 +141,8 @@ def main():
 
 	# Individual snapshots
 	print('Collecting snapshots ...')
-	snapshot_df = collect_snapshots(plot_range=range(-10, -4))
+	snapshot_df = collect_snapshots(plot_range=range(-10, -1))
+	plot_variance(snapshot_df)
 	print('Plotting snapshots ...')
 	plot_snapshots(snapshot_df)
 	swarmplot(snapshot_df)
