@@ -76,7 +76,7 @@ def main():
 		# Find the path for the average cost function
 		cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
 		    	   file_keyword='costfunction_average_{}.h5'.format(lnrho), 
-	 		   nr_occ=1)
+	 		   nr_occ=None)
 
 		# Find the paths for the unaveraged snapshot cost functions
 		cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
@@ -89,7 +89,7 @@ def main():
 			output_file = os.path.join(folder, 'charges_{}.csv'.format(lnrho))
 
 			if os.path.exists(output_file):
-				print('{} exists. Skipping ahead.'.format(cost_file))
+				print('{} exists. Skipping ahead.'.format(output_file))
 				continue
 
 			print('Optimizing charges for {}.'.format(cost_file[:18]))

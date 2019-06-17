@@ -308,7 +308,7 @@ def nonsingular_concat(X, vector):
       return None
 
 
-def stack_constraints(X, Q_x, Y, Q_y):
+def stack_constraints(X, Q_x, Y, Q_y, logging=False):
    """Transform two constraint matrices/vector pairs into a single pair.
 
    Args:
@@ -340,20 +340,26 @@ def stack_constraints(X, Q_x, Y, Q_y):
             con_matrix = new_matrix
             con_q = np.concatenate((con_q, np.atleast_1d(Q_y[row])))
          else:
-            with open('dropped_constraints.log', 'ab') as outfile:
-               np.savetxt(outfile, Y[row, :], fmt='%d', newline=" ")
-               outfile.write(b'\n')
+            if logging:
+                with open('dropped_constraints.log', 'ab') as outfile:
+                  np.savetxt(outfile, Y[row, :], fmt='%d', newline=" ")
+                  outfile.write(b'\n')
 
       return con_matrix, con_q
 
    raise ValueError('Invalid mixture of empty and non-empty constraints')
 
 
-def get_constraints(args, ase2pmd, debug=True):
+def get_constraints(args=None, ase2pmd=None, debug=True, **kwargs):
    '''Read provided constraint files and convert them into matrix form.'''
-   charge_group_file = args.charge_groups
-   charge_group_charges_file = args.charge_group_charges
-   symmetry_file = args.symmetry_file
+   if args is not None:
+      charge_group_file = args.charge_groups
+      charge_group_charges_file = args.charge_group_charges
+      symmetry_file = args.symmetry_file
+   else:
+      charge_group_file = kwargs['charge_group_file']
+      charge_group_charges_file = kwargs['charge_group_charges_file']
+      symmetry_file = kwargs['symmetry_file']
 
    # Constraints for atoms of same name to have same charge
    name_matrix, name_q = make_atom_name_constraints(ase2pmd)

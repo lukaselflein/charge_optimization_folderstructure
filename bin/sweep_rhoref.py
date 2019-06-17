@@ -28,11 +28,11 @@ def iterate_lnrho(path_to_subdir):
 	print('Iterating overt lnrho:')#, end=' ')
 	for lnrho in range(-10, 0):
 		output_name = os.path.join(sweep_dir, 'cost_{}.h5'.format(lnrho))
-		print(output_name)#, end=' ')
 		if os.path.exists(output_name):
-			print('{} exists. Skipping ahead.')
+			print('{} exists. Skipping ahead.'.format(output_name))
 			continue
-
+		else:
+			print('{} calculating ...'.format(output_name))
 		calc_cost_function(path_to_subdir, 
 				   lnrho=lnrho, 
 				   sigma=0.8, 
