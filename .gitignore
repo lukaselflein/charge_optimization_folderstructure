@@ -110,3 +110,6 @@ venv.bak/
 *bk*
 *swp
 *tryout*
+
+# Unique config files
+*fitting_constraint_files*
