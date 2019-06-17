@@ -143,8 +143,8 @@ def main():
 
 	# Individual snapshots
 	print('Collecting snapshots ...')
-	snapshot_df = collect_snapshots(plot_range=[-9, -5]) #range(-9, -5))
-	#plot_variance(snapshot_df)
+	snapshot_df = collect_snapshots(plot_range=range(-9, 0))
+	plot_variance(snapshot_df)
 	print('Plotting snapshots ...')
 	plot_snapshots(snapshot_df)
 	swarmplot(snapshot_df)
