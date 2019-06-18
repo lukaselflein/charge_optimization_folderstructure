@@ -29,10 +29,21 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
    # Import A and B matrices from HORTON
    A, B = read_horton_cost_function(horton_cost_function)
 
-   charge_group_file = find('..', 'fitting_constraint_files', 'atoms_in_charge_group.csv')[0]
-   charge_group_charges_file = find('..', 'fitting_constraint_files', 
-				    'charge_group_total_charge.csv')[0]
-   symmetry_file = find('..', 'fitting_constraint_files', 'atoms_of_same_charge.csv')[0]
+   try:
+	   charge_group_file = find('..', 'fitting_constraint_files', 'atoms_in_charge_group.csv')[0]
+   except:
+           charge_group_file = None
+
+   try:
+      charge_group_charges_file = find('..', 'fitting_constraint_files', 
+      				       'charge_group_total_charge.csv')[0]
+   except:
+      charge_group_charges_file = None
+   try:
+      symmetry_file = find('..', 'fitting_constraint_files', 'atoms_of_same_charge.csv')[0]
+   except:
+      symmetry_file = None
+      
 
    # Calculate constraints
    logic_constraints, charge_constraints = get_constraints(args=None, ase2pmd=ase2pmd, 
