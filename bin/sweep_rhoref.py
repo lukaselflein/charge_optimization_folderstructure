@@ -8,12 +8,17 @@ from __future__ import print_function
 
 import os
 import shutil
+#import multiprocessing
+#import sys
+import random
 
 from loop_cost_functions import calc_cost_function 
 from smamp.tools import cd
 from smamp.tools import check_existence
+def testprint(*args, **kwargs):
+	return 'args: {}, kwargs: {}'.format(args, kwargs)
 
-def iterate_lnrho(path_to_subdir):
+def iter_parameters(path_to_subdir):
 	"""Vary the lnrho weighting parameter, create folder and execute."""
 	sweep_dir = 'lnrho_sweep'
 	if os.path.exists(sweep_dir):
@@ -25,19 +30,31 @@ def iterate_lnrho(path_to_subdir):
 		os.mkdir(sweep_dir)
 		print('dir made.')
 
-	print('Iterating overt lnrho:')#, end=' ')
-	for lnrho in range(-10, 0):
-		output_name = os.path.join(sweep_dir, 'cost_{}.h5'.format(lnrho))
-		if os.path.exists(output_name):
-			print('{} exists. Skipping ahead.'.format(output_name))
+	tasks = []
+	for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
+		for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
+			output_name = os.path.join(sweep_dir, 'cost_{}_{}.h5'.format(lnrho, sigma))
+			if os.path.exists(output_name):
+				print('{} exists. Do not include in worklist.'.format(output_name))
+				continue
+			
+			else:
+				tasks += [(path_to_subdir, lnrho, sigma, output_name)]
+	#print(todo_parameters)
+	random.shuffle(tasks)
+	for task in tasks:
+		if os.path.exists(task[-1]):
+			print('{} exists. Skipping ahead.'.format(task[-1]))
 			continue
-		else:
-			print('{} calculating ...'.format(output_name))
-		calc_cost_function(path_to_subdir, 
-				   lnrho=lnrho, 
-				   sigma=0.8, 
-				   output_file=output_name)
-	print()
+
+		print('starting {} {}'.format(task[1], task[2]))
+		calc_cost_function(*task)
+		
+
+	#n_cpu = multiprocessing.cpu_count()
+	#pool = multiprocessing.Pool(processes=n_cpu)
+	#print('Initialized pool of {} workers. Starting ...'.format(n_cpu))
+	#pool.map(calc_cost_function, tasks)
 
 
 def main():
@@ -49,29 +66,14 @@ def main():
 	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
+		if 'template' in subdir or 'exclude' in subdir or 'lnrho_sweep' in subdir:
 			continue
 
 		# Select the folder to calculate in
 		if 'horton_cost_function' in subdir:
-
-			# Check if all neccessary files exist
-			neccessary_files = ['../3_united_atom_structure/esp_ua.cube']
-			neccessary_files += ['../3_united_atom_structure/rho_ua.cube']
-			warning = check_existence(path=subdir, neccessary_files=neccessary_files)
-	
-			# If they don't exist, log this and move on
-			if warning:
-				with open('submissions.log', 'a') as logfile:
-					logfile.write(warning + '\n')
-				continue
-
-			# Start the calculation only if all files exist
-			elif warning is None:
-				# print('Calculating: {}'.format(subdir))
-				print('Moving to {}'.format(subdir))
-				with cd(subdir):
-					iterate_lnrho(subdir)	
+			print('Moving to {}'.format(subdir))
+			with cd(subdir):
+				iter_parameters(subdir)	
 	print('Done.')
 
 if __name__ == '__main__':

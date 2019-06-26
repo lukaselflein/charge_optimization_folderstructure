@@ -103,7 +103,7 @@ def plot_joint(avg_df, snap_df):
 @default_style
 def swarmplot(df):
 	sp = sns.swarmplot('value', 'atom', data=df, hue='lnrho',
-			    palette=sns.color_palette("coolwarm", 6))
+			    palette=sns.color_palette("coolwarm", 10))
 
 	sp.set_title('Individual snapshot charges of all residues')
 	sp.axes.grid(True)  # Show horizontal gridlines

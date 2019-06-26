@@ -80,31 +80,32 @@ def main():
 	hyd_file = find(path='..', folder_keyword='fitting', file_keyword='hydrogen_per_atom.csv')[0]
 
 	# Also, we need constraint files
+	for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
+		for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
+	#for lnrho in range(-10, 0):
+			print('lnrho = {} .'.format(lnrho))
 
-	for lnrho in range(-10, 0):
-		print('lnrho = {} .'.format(lnrho))
+			# Find the path for the average cost function
+			cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
+				   file_keyword='costfunction_average_{}.h5'.format(lnrho), 
+				   nr_occ=None)
 
-		# Find the path for the average cost function
-		cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
-		    	   file_keyword='costfunction_average_{}.h5'.format(lnrho), 
-	 		   nr_occ=None)
+			# Find the paths for the unaveraged snapshot cost functions
+			cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
+					  file_keyword='cost_{}_{}.h5'.format(lnrho, sigma), 
+					  nr_occ=None)
+			cost_paths += cost_avg
 
-		# Find the paths for the unaveraged snapshot cost functions
-		cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
-		    	          file_keyword='cost_{}.h5'.format(lnrho), 
-     	 		          nr_occ=None)
-		cost_paths += cost_avg
+			for cost_file in cost_paths:
+				folder = os.path.split(cost_file)[0]
+				output_file = os.path.join(folder, 'charges_{}_{}.csv'.format(lnrho, sigma))
 
-		for cost_file in cost_paths:
-			folder = os.path.split(cost_file)[0]
-			output_file = os.path.join(folder, 'charges_{}.csv'.format(lnrho))
+				if os.path.exists(output_file):
+					print('{} exists. Skipping ahead.'.format(output_file))
+					continue
 
-			if os.path.exists(output_file):
-				print('{} exists. Skipping ahead.'.format(output_file))
-				continue
-
-			print('Optimizing charges for {}.'.format(cost_file[:18]))
-			calc_charges(pdb_file, top_file, hyd_file, cost_file, output_file=output_file)
+				print('Optimizing charges for {}.'.format(cost_file[:18]))
+				calc_charges(pdb_file, top_file, hyd_file, cost_file, output_file=output_file)
 		
 
 	print('Done.')
