@@ -82,16 +82,15 @@ def main():
 	# Also, we need constraint files
 	for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
 		for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
-	#for lnrho in range(-10, 0):
-			print('lnrho = {} .'.format(lnrho))
+			print('lnrho = {}, sigma = {} .'.format(lnrho, sigma))
 
 			# Find the path for the average cost function
 			cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
-				   file_keyword='costfunction_average_{}.h5'.format(lnrho), 
+				   file_keyword='costfunction_average_{}_{}.h5'.format(lnrho, sigma), 
 				   nr_occ=None)
 
 			# Find the paths for the unaveraged snapshot cost functions
-			cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
+			cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep',
 					  file_keyword='cost_{}_{}.h5'.format(lnrho, sigma), 
 					  nr_occ=None)
 			cost_paths += cost_avg
