@@ -18,7 +18,7 @@ from smamp.tools import check_existence
 def testprint(*args, **kwargs):
 	return 'args: {}, kwargs: {}'.format(args, kwargs)
 
-def iter_parameters(path_to_subdir):
+def get_tasks(path_to_subdir):
 	"""Vary the lnrho weighting parameter, create folder and execute."""
 	sweep_dir = 'lnrho_sweep'
 	if os.path.exists(sweep_dir):
@@ -40,6 +40,9 @@ def iter_parameters(path_to_subdir):
 			
 			else:
 				tasks += [(path_to_subdir, lnrho, sigma, output_name)]
+	return tasks
+
+def calculate_tasks(tasks):
 	print('{} items in worklist.'.format(len(tasks)))
 	random.shuffle(tasks)
 	for task in tasks:
@@ -47,20 +50,17 @@ def iter_parameters(path_to_subdir):
 			print('{} exists. Skipping ahead.'.format(task[-1]))
 			continue
 
-		print('starting {} {}'.format(task[1], task[2]))
-		calc_cost_function(*task)
+		print('starting {} {} in {}'.format(task[1], task[2], task[0]))
+		with cd(task[0]):
+			calc_cost_function(*task)
 		
-
-	#n_cpu = multiprocessing.cpu_count()
-	#pool = multiprocessing.Pool(processes=n_cpu)
-	#print('Initialized pool of {} workers. Starting ...'.format(n_cpu))
-	#pool.map(calc_cost_function, tasks)
-
 
 def main():
 	""" Execute everything."""
 	print('This is {}.'.format(__file__))
 	print('Current working dir: {}'.format(os.getcwd()))
+	
+	tasks = []
 
 	# Crawl the directory structure
 	for subdir, dirs, files in sorted(os.walk('.')):
@@ -73,7 +73,10 @@ def main():
 		if 'horton_cost_function' in subdir:
 			print('Moving to {}'.format(subdir))
 			with cd(subdir):
-				iter_parameters(subdir)	
+				subdir_tasks = get_tasks(subdir)
+				tasks += subdir_tasks
+	
+	calculate_tasks(tasks)
 	print('Done.')
 
 if __name__ == '__main__':

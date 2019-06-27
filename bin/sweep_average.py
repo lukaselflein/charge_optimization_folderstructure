@@ -31,6 +31,7 @@ def main():
 	lnrho_range = []
 	sigma_range = []
 	for charge_file in cost_paths:
+		print(charge_file)
 		# Parse parameters from filename
 		lnrho, sigma = charge_file[-15:-3].split('_')[-2:]
 		lnrho_range += [lnrho]
