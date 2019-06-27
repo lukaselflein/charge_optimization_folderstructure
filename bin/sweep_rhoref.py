@@ -40,7 +40,7 @@ def iter_parameters(path_to_subdir):
 			
 			else:
 				tasks += [(path_to_subdir, lnrho, sigma, output_name)]
-	#print(todo_parameters)
+	print('{} items in worklist.'.format(len(tasks)))
 	random.shuffle(tasks)
 	for task in tasks:
 		if os.path.exists(task[-1]):
