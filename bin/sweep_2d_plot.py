@@ -19,7 +19,7 @@ from smamp.tools import find
 def collect_snapshots(plot_range=[-9, -5]):
 	collect_df = pd.DataFrame()
 	cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
-			  file_keyword='charges',
+			  file_keyword='charge',
 			  nr_occ=None)
 
 	for charge_file in cost_paths:
@@ -53,10 +53,10 @@ def collect_avg():
 			  nr_occ=None)
 
 	for charge_file in cost_paths:
-		print(charge_file)
+		#print(charge_file)
 		# Parse parameters from filename
 		lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
-		print(lnrho, sigma)
+		#print(lnrho, sigma)
 
 		# Read file
 		df = pd.read_csv(charge_file)

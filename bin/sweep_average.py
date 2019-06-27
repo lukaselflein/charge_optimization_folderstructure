@@ -26,14 +26,13 @@ def main():
 		os.makedirs(chargepath)
 
 	cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
-			  file_keyword='charges',
+			  file_keyword='cost',
 			  nr_occ=None)
-
 	lnrho_range = []
 	sigma_range = []
 	for charge_file in cost_paths:
 		# Parse parameters from filename
-		lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
+		lnrho, sigma = charge_file[-15:-3].split('_')[-2:]
 		lnrho_range += [lnrho]
 		sigma_range += [sigma]
 
@@ -42,10 +41,10 @@ def main():
 
 	for lnrho in lnrho_range:
 		for sigma in sigma_range:
+			print('lnrho = {}, sigma = {}'.format(lnrho, sigma))
 			filename = 'cost_{}_{}.h5'.format(lnrho, sigma)
 			cost_function_paths = find(path='.', folder_keyword='lnrho_sweep', 
 						   file_keyword=filename, nr_occ=None)
-			print(cost_function_paths)
 
 			# Extract cost function As and Bs
 			A_matrices, B_vectors = collect_matrices(cost_function_paths)
@@ -60,7 +59,6 @@ def main():
 
 			# Export matrices to hdf5 
 			export(average_A, average_B, template_path=template_path)
-		exit()
 
 	print('Done.')
 

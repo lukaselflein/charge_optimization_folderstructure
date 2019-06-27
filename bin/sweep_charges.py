@@ -80,34 +80,32 @@ def main():
 	hyd_file = find(path='..', folder_keyword='fitting', file_keyword='hydrogen_per_atom.csv')[0]
 
 	cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
-			  file_keyword='charges',
+			  file_keyword='cost',
 			  nr_occ=None)
 	lnrho_range = []
 	sigma_range = []
 	for charge_file in cost_paths:
 		# Parse parameters from filename
-		lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
+		lnrho, sigma = charge_file[-15:-3].split('_')[-2:]
 		lnrho_range += [lnrho]
 		sigma_range += [sigma]
 
 	lnrho_range = set(lnrho_range)
 	sigma_range = set(sigma_range)
 
-	# for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
-	# 	for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
 	for lnrho in lnrho_range:
 		for sigma in sigma_range:
 			print('lnrho = {}, sigma = {} .'.format(lnrho, sigma))
-
-			# Find the path for the average cost function
-			cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
-				   file_keyword='costfunction_average_{}_{}.h5'.format(lnrho, sigma), 
-				   nr_occ=None)
 
 			# Find the paths for the unaveraged snapshot cost functions
 			cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep',
 					  file_keyword='cost_{}_{}.h5'.format(lnrho, sigma), 
 					  nr_occ=None)
+
+			# Find the path for the average cost function
+			cost_avg = find(path='.', folder_keyword='horton_charges/sweep_rhoref', 
+				   file_keyword='costfunction_average_{}_{}.h5'.format(lnrho, sigma), 
+				   nr_occ=None)
 			cost_paths += cost_avg
 
 			for cost_file in cost_paths:
