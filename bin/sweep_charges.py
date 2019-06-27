@@ -79,9 +79,24 @@ def main():
 	top_file = find(path='.', folder_keyword='0_initial_structure', file_keyword='.top')[0]
 	hyd_file = find(path='..', folder_keyword='fitting', file_keyword='hydrogen_per_atom.csv')[0]
 
-	# Also, we need constraint files
-	for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
-		for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
+	cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep', 
+			  file_keyword='charges',
+			  nr_occ=None)
+	lnrho_range = []
+	sigma_range = []
+	for charge_file in cost_paths:
+		# Parse parameters from filename
+		lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
+		lnrho_range += [lnrho]
+		sigma_range += [sigma]
+
+	lnrho_range = set(lnrho_range)
+	sigma_range = set(sigma_range)
+
+	# for sigma in [0.6, 0.8, 1.0, 1.5, 2.0]:
+	# 	for lnrho in [-9, -8, -7, -6, -5, -4, -3, -2]:
+	for lnrho in lnrho_range:
+		for sigma in sigma_range:
 			print('lnrho = {}, sigma = {} .'.format(lnrho, sigma))
 
 			# Find the path for the average cost function
