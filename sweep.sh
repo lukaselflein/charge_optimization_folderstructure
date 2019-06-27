@@ -1,20 +1,21 @@
 #!/bin/bash
+source ~/.bashrc
 
 # Calculate cost functions with HORTON
 module purge
-module load horton/2.1.0b3 2>.module_load.log
+module load horton/2.1.0b3 2>/dev/null
 module load smamp
 python sweep_rhoref.py
 
 # Average over cost functions
 module purge
-module load horton/2.1.0b3 2>.module_load.log
+module load horton/2.1.0b3 2>/dev/null
 module load smamp
 python sweep_average.py 
 
 # Fit ESP cost function
 module purge
-module load horton/2.1.0b3 2>.module_load.log
+module load horton/2.1.0b3 2>/dev/null
 module load smamp
 module load gromacs
 python sweep_charges.py
