@@ -38,7 +38,7 @@ def main():
 			with open('bader.log', 'w') as logfile:
 				# Assemble the shell command bader
 				command = 'bader -p atom_index '
-				command += os.path.join(' ../2_dft_calculations/', 
+				command += os.path.join('../2_dft_calculations/', 
 							file_name)
 				kwargs = {"shell": True, "stdout": logfile, 
 					  "stderr": subprocess.STDOUT}
