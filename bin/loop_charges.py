@@ -65,7 +65,7 @@ def main():
 	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
+		if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
 			continue
 
 		# Select the folders with cost function
@@ -74,8 +74,8 @@ def main():
 			with cd(subdir):
 				# Search for the .pdb and .top file in the folders above
 				input_path = '..'
-				pdb_path = find(input_path, folder_keyword='initial', file_keyword='.pdb', nr_occ=1, exclude_kw=['template', 'exclude'])[0]
-				top_path = find(input_path, folder_keyword='initial', file_keyword='.top', nr_occ=1, exclude_kw=['template', 'exclude'])[0]
+				pdb_path = find(input_path, folder_keyword='initial', file_keyword='.pdb', nr_occ=1, exclude_kw=['template', 'exclude', 'sweep'])[0]
+				top_path = find(input_path, folder_keyword='initial', file_keyword='.top', nr_occ=1, exclude_kw=['template', 'exclude', 'sweep'])[0]
 	
 				# Do the calculation
 				calc_charges(subdir, qtot=qtot, pdb_path=pdb_path, top_path=top_path)
