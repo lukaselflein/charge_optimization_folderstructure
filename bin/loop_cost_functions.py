@@ -10,7 +10,7 @@ import argparse
 from smamp.tools import cd
 from smamp.tools import check_existence
 
-def calc_cost_function(path, lnrho=-9, sigma=0.8, output_file="cost.h5"):
+def calc_cost_function(path, lnrho=-5, sigma=0.8, output_file="cost.h5"):
 	""" Call the horton script."""
 	command = "horton-esp-cost.py"
 	esp_file = " ../3_united_atom_structure/esp_ua.cube"
@@ -59,7 +59,7 @@ def main():
 	for subdir, dirs, files in sorted(os.walk('.')):
 
 		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
+		if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
 			continue
 
 		# Select the folder to calculate in
