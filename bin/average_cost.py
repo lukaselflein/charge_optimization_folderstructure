@@ -49,7 +49,7 @@ def find_cost(path='.', cost_function_filename='cost.h5'):
 				print('Filename was assumed to be "{}"'.format(cost_function_filename))
 	return cost_function_paths
 
-def read_h5(path, verbose=True):
+def read_h5(path, verbose=False):
 	"""
 	Import cost functions, convert to numpy arrays.
 
@@ -60,7 +60,6 @@ def read_h5(path, verbose=True):
 	A_matrices: a dictionary of matrices, indexed by their timestep.
 	B_vectors: a dictionary of vectors, indexed by their timestep.
 	"""
-
 
 	# Extract the values for each timestep
 	if verbose:
@@ -161,7 +160,7 @@ def export(A, B, template_path='./average_cost.h5'):
 	assert np.allclose(f['cost/A'][()], A)
 	assert np.allclose(f['cost/B'][()], B)
 
-	print('Data has been written to {}\n'.format(template_path))
+	# print('Data has been written to {}\n'.format(template_path))
 
 def main():
 	""" Run the script."""
