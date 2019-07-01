@@ -113,7 +113,7 @@ def main():
 				output_file = os.path.join(folder, 'charges_{}_{}.csv'.format(lnrho, sigma))
 
 				if os.path.exists(output_file):
-					print('{} exists. Skipping ahead.'.format(output_file))
+					# print('{} exists. Skipping ahead.'.format(output_file))
 					continue
 
 				print('Optimizing charges for {}.'.format(cost_file[:18]))

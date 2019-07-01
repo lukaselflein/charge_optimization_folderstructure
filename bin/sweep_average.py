@@ -31,7 +31,7 @@ def main():
 	lnrho_range = []
 	sigma_range = []
 	for charge_file in cost_paths:
-		print(charge_file)
+		# print(charge_file)
 		# Parse parameters from filename
 		lnrho, sigma = charge_file[-15:-3].split('_')[-2:]
 		lnrho_range += [lnrho]
@@ -42,7 +42,7 @@ def main():
 
 	for lnrho in lnrho_range:
 		for sigma in sigma_range:
-			print('lnrho = {}, sigma = {}'.format(lnrho, sigma))
+			# print('lnrho = {}, sigma = {}'.format(lnrho, sigma))
 			filename = 'cost_{}_{}.h5'.format(lnrho, sigma)
 			cost_function_paths = find(path='.', folder_keyword='lnrho_sweep', 
 						   file_keyword=filename, nr_occ=None)
