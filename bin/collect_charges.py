@@ -33,6 +33,7 @@ def collect_bader():
 			print('Moving to {}'.format(subdir))
 			# Extract timestamp
 			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
+			time = time.replace('/4_horton_cost_function', '')
 			time = int(time)
 		
 			# Use the first charge file to come across as a template	
@@ -72,14 +73,16 @@ def collect_horton():
 			continue
 
 		# Select the folders with cost function
-		if 'horton_cost_function' in subdir:
+		if 'horton_cost_function/lnrho_sweep' in subdir:
 			print('Moving to {}'.format(subdir))
 			# Extract timestamp
 			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
+			time = time.replace('/4_horton_cost_function', '')
 			time = int(time)
 		
 			# Use the first charge file to come across as a template	
-			df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
+			#df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
+			df = pd.read_csv(os.path.join(subdir, 'charges_-4_0.8.csv'))
 			df['timestamp'] = time
 
 			if coll_df is None:
