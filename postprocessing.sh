@@ -29,7 +29,7 @@ module purge
 module load horton/2.1.0b3 2>.module_load.log
 module load smamp
 module load gromacs
-python ../bin/fitESPconstrained.py horton_charges/costfunction_average.h5 200_ps_snapshot/0_initial_structure/snapshot_200.pdb 200_ps_snapshot/0_initial_structure/example.top ../fitting_constraint_files/atoms_in_charge_group.csv ../fitting_constraint_files/charge_group_total_charge.csv ../fitting_constraint_files/atoms_of_same_charge.csv updated_charges.top horton_charges/fitted_point_charges.csv -i ../fitting_constraint_files/hydrogen_per_atom.csv  --verbose 2>&1 >horton_charges/charge_fitting.log
+python ../bin/fitESPconstrained.py -hor horton_charges/costfunction_average.h5 -p 100_ps_snapshot/0_initial_structure/*pdb -t 100_ps_snapshot/0_initial_structure/*.top -g ../fitting_constraint_files/atoms_in_charge_group.csv -c ../fitting_constraint_files/charge_group_total_charge.csv -s ../fitting_constraint_files/atoms_of_same_charge.csv -o horton_charges/fitted_point_charges.csv -hyd ../fitting_constraint_files/hydrogen_per_atom.csv 
 # Output: test.top, fitted_point_charges.top
 
 # Write new point charges into .rtp topology file
