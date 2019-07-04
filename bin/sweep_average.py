@@ -41,8 +41,8 @@ def main():
    sigma_range = set(sigma_range)
 
    for lnrho in lnrho_range:
+      print('lnrho = {}'.format(lnrho))
       for sigma in sigma_range:
-         print('lnrho = {}, sigma = {}'.format(lnrho, sigma))
          filename = 'cost_{}_{}.h5'.format(lnrho, sigma)
          cost_function_paths = find(path='.', folder_keyword='lnrho_sweep', 
                      file_keyword=filename, nr_occ=None)

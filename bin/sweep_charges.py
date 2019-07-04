@@ -94,8 +94,8 @@ def main():
 	sigma_range = set(sigma_range)
 
 	for lnrho in lnrho_range:
+      print('lnrho = {} ...'.format(lnrho))
 		for sigma in sigma_range:
-			print('lnrho = {}, sigma = {} .'.format(lnrho, sigma))
 
 			# Find the paths for the unaveraged snapshot cost functions
 			cost_paths = find(path='.', folder_keyword='4_horton_cost_function/lnrho_sweep',

@@ -55,7 +55,6 @@ def collect_avg():
            nr_occ=None)
 
    for charge_file in cost_paths:
-      #print(charge_file)
       # Parse parameters from filename
       lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
 
@@ -73,7 +72,6 @@ def collect_avg():
 
          collect_df = collect_df.append(df)
 
-   print(collect_df)
    collect_df = pd.melt(collect_df, id_vars=['atom', 'residue', 'lnrhoref', 'sigma'], 
               value_vars=['diff'])
    return collect_df
@@ -102,14 +100,12 @@ def main():
    df = collect_avg()
    df = molten_to_2d(df)
    plot_heatmap(df, outname='plotting/avg_heatmap.png')
-   print(df)   
 
    # Individual snapshots
    print('Collecting snapshots ...')
    df = collect_snapshots(plot_range=range(-9, 0))
    df = molten_to_2d(df)
    plot_heatmap(df, outname='plotting/snapshot_heatmap.png')
-   print(df)   
 
    print('Done.')
 
