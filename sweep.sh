@@ -17,7 +17,7 @@ python sweep_average.py
 module purge
 module load horton/2.1.0b3 2>/dev/null
 module load smamp
-module load gromacs
+module load gromacs/2016.4-gnu-5.2
 python sweep_charges.py
 
 # Plot charges
