@@ -39,9 +39,9 @@ def cmd_parser():
 	parser = argparse.ArgumentParser(prog='',
 					 description='Discover input files and calc cost functions.')
 	
-	parser.add_argument('--lnrho', metavar=-9,
+	parser.add_argument('--lnrho', metavar=-5,
         help='Value of the lnrho reference parameter for HORTON cost function construction.',
-	default=-9)
+	default=-5)
 
 	args = parser.parse_args()
 
