@@ -17,7 +17,7 @@ In the original paper, the authors used RRMSD (Relative Root Mean Square Deviati
 Sarah wants to use RRMS between constrained and unconstrained charges instead. This metric is defined as:
 $RRMSD = \sqrt{\frac{\sum_i^N{(q^{con}_i - q^{uncon}_i)^2}}{N}}}$
 
-, with a sum over all atoms/residue i, with a positive value in units of elementary charge [e].
+, with a sum over all N atoms i, with a positive value in units of elementary charge [e].
 This metric puts more weight on outliers than a non-quadratic sum would.
 
 Evaluating the RRMSD over the 2D-space of (rhoref,sigma), we can evaluate how close our chosen parameter values are to the minimum.
