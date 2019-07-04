@@ -25,21 +25,23 @@ def collect_snapshots(plot_range=[-9, -5]):
    for charge_file in cost_paths:
       # Parse parameters from filename
       lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
+      sarah_wish_sigma = ['0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4']
+      if sigma in sarah_wish_sigma:
 
-      # Read file
-      df = pd.read_csv(charge_file)
+         # Read file
+         df = pd.read_csv(charge_file)
 
-      # Paste the lnrho parameter into the dataframe
-      df['lnrhoref'] = int(lnrho)
-      df['sigma'] = float(sigma)
+         # Paste the lnrho parameter into the dataframe
+         df['lnrhoref'] = int(lnrho)
+         df['sigma'] = float(sigma)
 
-      # Also note the snapshot identifier
-      timestamp = re.findall(r'\d+', charge_file)[0]
-      df['snapshot'] = timestamp
-      # df['diff'] = (df.q - df.q_unconstrained).abs()
-      df['diff'] = (df.q - df.q_unconstrained)**2
+         # Also note the snapshot identifier
+         timestamp = re.findall(r'\d+', charge_file)[0]
+         df['snapshot'] = timestamp
+         # df['diff'] = (df.q - df.q_unconstrained).abs()
+         df['diff'] = (df.q - df.q_unconstrained)**2
 
-      collect_df = collect_df.append(df)
+         collect_df = collect_df.append(df)
 
    collect_df = pd.melt(collect_df, id_vars=['atom', 'residue', 'snapshot', 'lnrhoref', 'sigma'], 
               value_vars=['diff'])
@@ -56,23 +58,22 @@ def collect_avg():
       #print(charge_file)
       # Parse parameters from filename
       lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
-      sarah_wish_sigma = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
-      sigma = [s for s in sigma if s in sarah_wish_sigma]
 
-      #print(lnrho, sigma)
+      sarah_wish_sigma = ['0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4']
+      if sigma in sarah_wish_sigma:
+         # Read file
+         df = pd.read_csv(charge_file)
 
-      # Read file
-      df = pd.read_csv(charge_file)
+         # Paste the lnrho parameter into the dataframe
+         df['lnrhoref'] = int(lnrho)
+         df['sigma'] = float(sigma)
 
-      # Paste the lnrho parameter into the dataframe
-      df['lnrhoref'] = int(lnrho)
-      df['sigma'] = float(sigma)
+         # Also note the snapshot identifier
+         df['diff'] = (df.q - df.q_unconstrained)**2
 
-      # Also note the snapshot identifier
-      df['diff'] = (df.q - df.q_unconstrained)**2
+         collect_df = collect_df.append(df)
 
-      collect_df = collect_df.append(df)
-
+   print(collect_df)
    collect_df = pd.melt(collect_df, id_vars=['atom', 'residue', 'lnrhoref', 'sigma'], 
               value_vars=['diff'])
    return collect_df
@@ -100,14 +101,14 @@ def main():
    print('Collecting averages')
    df = collect_avg()
    df = molten_to_2d(df)
-   plot_heatmap(df, outname='avg_heatmap.png')
+   plot_heatmap(df, outname='plotting/avg_heatmap.png')
    print(df)   
 
    # Individual snapshots
    print('Collecting snapshots ...')
    df = collect_snapshots(plot_range=range(-9, 0))
    df = molten_to_2d(df)
-   plot_heatmap(df, outname='snapshot_heatmap.png')
+   plot_heatmap(df, outname='plotting/snapshot_heatmap.png')
    print(df)   
 
    print('Done.')
