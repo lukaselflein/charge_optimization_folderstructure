@@ -136,7 +136,7 @@ def extract_init_charges(rtp_path, df):
 def collect_average():
 	"""Put averaged charegs in a dataframe."""
 	# Read charges from averaged cost function
-	input_path = './horton_charges/fitted_point_charges.csv'
+	input_path = './horton_charges/sweep_rhoref/charges_-5_0.8.csv'
 	avg_df = pd.read_csv(input_path)
 	# Rename columns for consistency
 	avg_df = avg_df.rename({'q': 'averaged cost function'}, axis=1)
