@@ -136,9 +136,9 @@ def main():
 	print('This is {}.'.format(__file__))
 
 	# Averages
-	print('Collecting averages ...')
+	# print('Collecting averages ...')
 	# average_df = collect_averages()
-	print('Plotting averages ...')
+	# print('Plotting averages ...')
 	# plot_averages(average_df)
 
 	# Individual snapshots
