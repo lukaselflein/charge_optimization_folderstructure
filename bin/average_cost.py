@@ -12,7 +12,7 @@ import os
 from smamp.tools import cd
 
 
-def find_cost(path='.', cost_function_filename='cost.h5'):
+def find_cost(path='.', cost_function_filename='cost_-5_0.8.h5'):
 	"""
 	Find all cost functions in folder structure.
 
@@ -36,9 +36,10 @@ def find_cost(path='.', cost_function_filename='cost.h5'):
 			continue
 
 		# Select the folder with cost functions:
-		if 'horton_cost_function' in subdir:
+		if 'horton_cost_function/lnrho_sweep' in subdir:
 			# The cost file should be in:
 			cost_path = os.path.join(subdir, cost_function_filename)
+			print(cost_path)
 			if os.path.isfile(cost_path):
 				# Add the cost function to our collection
 				cost_function_paths += [cost_path]
