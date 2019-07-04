@@ -28,4 +28,4 @@ python sweep_2d_plot.py
 python sweep_plot.py
 
 python collect_charges.py
-plot_charges.py
+python plot_charges.py
