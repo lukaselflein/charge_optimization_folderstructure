@@ -33,7 +33,6 @@ def collect_bader():
 			print('Moving to {}'.format(subdir))
 			# Extract timestamp
 			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
-			time = time.replace('/4_horton_cost_function', '')
 			time = int(time)
 		
 			# Use the first charge file to come across as a template	
@@ -69,11 +68,11 @@ def collect_horton():
 	for subdir, dirs, files in sorted(os.walk('./')):
 
 		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir or 'horton_charges' in subdir:
+		if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
 			continue
 
 		# Select the folders with cost function
-		if 'horton_cost_function/lnrho_sweep' in subdir:
+		if 'horton_cost_function' in subdir:
 			print('Moving to {}'.format(subdir))
 			# Extract timestamp
 			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
@@ -81,8 +80,7 @@ def collect_horton():
 			time = int(time)
 		
 			# Use the first charge file to come across as a template	
-			#df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
-			df = pd.read_csv(os.path.join(subdir, 'charges_-5_0.8.csv'))
+			df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
 			df['timestamp'] = time
 
 			if coll_df is None:
@@ -134,9 +132,9 @@ def extract_init_charges(rtp_path, df):
 
 
 def collect_average():
-	"""Put averaged charges in a dataframe."""
+	"""Put averaged charegs in a dataframe."""
 	# Read charges from averaged cost function
-	input_path = './horton_charges/sweep_rhoref/charges_-5_0.8.csv'
+	input_path = './horton_charges/fitted_point_charges.csv'
 	avg_df = pd.read_csv(input_path)
 	# Rename columns for consistency
 	avg_df = avg_df.rename({'q': 'averaged cost function'}, axis=1)
