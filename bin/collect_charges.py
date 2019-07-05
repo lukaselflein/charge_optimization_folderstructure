@@ -69,7 +69,7 @@ def collect_horton():
 	for subdir, dirs, files in sorted(os.walk('./')):
 
 		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
+		if 'template' in subdir or 'exclude' in subdir or 'horton_charges' in subdir:
 			continue
 
 		# Select the folders with cost function
@@ -82,7 +82,7 @@ def collect_horton():
 		
 			# Use the first charge file to come across as a template	
 			#df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
-			df = pd.read_csv(os.path.join(subdir, 'charges_-4_0.8.csv'))
+			df = pd.read_csv(os.path.join(subdir, 'charges_-5_0.8.csv'))
 			df['timestamp'] = time
 
 			if coll_df is None:
@@ -134,7 +134,7 @@ def extract_init_charges(rtp_path, df):
 
 
 def collect_average():
-	"""Put averaged charegs in a dataframe."""
+	"""Put averaged charges in a dataframe."""
 	# Read charges from averaged cost function
 	input_path = './horton_charges/sweep_rhoref/charges_-5_0.8.csv'
 	avg_df = pd.read_csv(input_path)
