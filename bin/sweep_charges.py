@@ -19,7 +19,8 @@ from fitESPconstrained import get_constraints, constrained_minimize, unconstrain
 from fitESPconstrained import write_charges, write_forces
 
 
-def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, output_file):
+def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, output_file,
+                 charge_group_file=None, charge_group_charges_file=None, symmetry_file=None):
    '''Wraps fitESPconstrained.py'''
    # Look up the relationship between ASE indices, atom names
    pmd_struct, pmd_top, ase2pmd = create_structure(pdb_infile, top_infile,
@@ -29,20 +30,24 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
    # Import A and B matrices from HORTON
    A, B = read_horton_cost_function(horton_cost_function)
 
-   try:
-      charge_group_file = find('..', 'fitting_constraint_files', 'atoms_in_charge_group.csv')[0]
-   except:
-           charge_group_file = None
+   if charge_group_file is None:
+      try:
+         charge_group_file = find('..', 'fitting_constraint_files', 'atoms_in_charge_group.csv')[0]
+      except:
+              charge_group_file = None
 
-   try:
-      charge_group_charges_file = find('..', 'fitting_constraint_files', 
-                         'charge_group_total_charge.csv')[0]
-   except:
-      charge_group_charges_file = None
-   try:
-      symmetry_file = find('..', 'fitting_constraint_files', 'atoms_of_same_charge.csv')[0]
-   except:
-      symmetry_file = None
+   if charge_group_charges_file is None:
+      try:
+         charge_group_charges_file = find('..', 'fitting_constraint_files', 
+                            'charge_group_total_charge.csv')[0]
+      except:
+         charge_group_charges_file = None
+   
+   if symmetry_file is None:
+      try:
+         symmetry_file = find('..', 'fitting_constraint_files', 'atoms_of_same_charge.csv')[0]
+      except:
+         symmetry_file = None
       
 
    # Calculate constraints
@@ -67,7 +72,7 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
 
    # Save Lagrange forces
    # write_forces(f, logic_constraints, ase2pmd)
-   print('Charges and forces written.')
+   print('Charges and written to {}.'.format(output_file))
 
 def main():
    """ Execute everything."""
