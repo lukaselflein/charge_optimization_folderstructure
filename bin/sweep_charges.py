@@ -72,7 +72,7 @@ def calc_charges(pdb_infile, top_infile, hydrogen_file, horton_cost_function, ou
 
    # Save Lagrange forces
    # write_forces(f, logic_constraints, ase2pmd)
-   print('Charges and written to {}.'.format(output_file))
+   print('Charges written to {}.'.format(output_file))
 
 def main():
    """ Execute everything."""

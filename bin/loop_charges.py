@@ -42,6 +42,7 @@ def old_calc_charges(subdir, qtot=0, pdb_path='../0_initial_structure/snapshot.p
    command = binary + target_cost + snapshot_path + topology_path
    command += constraint_files + output_files + charge_option 
    command += hydrogen_file + verbosity
+   print(command)
 
    # Log the command output
    with open('charge_fitting_out.log', 'w') as logfile:

@@ -9,92 +9,92 @@ import pandas as pd
 
 
 def create_dir(path='./plotting'):
-	"""Create new folder for pictures if it does not exist yet."""
-	if os.path.isdir(path):
-		return path
+   """Create new folder for pictures if it does not exist yet."""
+   if os.path.isdir(path):
+      return path
 
-	os.makedirs(path)
-	return path
+   os.makedirs(path)
+   return path
 
 
 def collect_bader():
-	"""Find charges and put them in one dataframe."""
-	# Initialize collection data frame
-	coll_df = None
-	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk('./')):
+   """Find charges and put them in one dataframe."""
+   # Initialize collection data frame
+   coll_df = None
+   # Crawl the directory structure
+   for subdir, dirs, files in sorted(os.walk('./')):
 
-		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir:
-			continue
+      # Exclude template folders from search
+      if 'template' in subdir or 'exclude' in subdir:
+         continue
 
-		# Select the folders with cost function
-		if 'bader_charges' in subdir:
-			print('Moving to {}'.format(subdir))
-			# Extract timestamp
-			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
-			time = int(time)
-		
-			# Use the first charge file to come across as a template	
-			df = pd.read_csv(os.path.join(subdir, 'bader_charges.csv'), sep=r',\s*',
-					 engine='python')
-			df['timestamp'] = time
+      # Select the folders with cost function
+      if 'bader_charges' in subdir:
+         print('Moving to {}'.format(subdir))
+         # Extract timestamp
+         time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
+         time = int(time)
+      
+         # Use the first charge file to come across as a template   
+         df = pd.read_csv(os.path.join(subdir, 'bader_charges.csv'), sep=r',\s*',
+                engine='python')
+         df['timestamp'] = time
 
-			if coll_df is None:
-				coll_df = df
-			else:
-				coll_df = coll_df.append(df)
+         if coll_df is None:
+            coll_df = df
+         else:
+            coll_df = coll_df.append(df)
 
-	# The table still contains redundant hydrogen atoms: 1CD3... 2CB3
-	# Delete everything containing '1C' or '2C'
-	# print(coll_df[coll_df.atom.str.contains(r'[1-2]C')])
-	coll_df = coll_df.drop(coll_df[coll_df.atom.str.contains(r'[1-2]C')].index)
+   # The table still contains redundant hydrogen atoms: 1CD3... 2CB3
+   # Delete everything containing '1C' or '2C'
+   # print(coll_df[coll_df.atom.str.contains(r'[1-2]C')])
+   coll_df = coll_df.drop(coll_df[coll_df.atom.str.contains(r'[1-2]C')].index)
 
-	print('All collected. Transforming wide to long format ...')
-	# Transform the wide format into a long format version (for easier plotting)
-	coll_df = coll_df.rename({'q': 'bader'}, axis=1)
-	coll_df = pd.melt(coll_df, id_vars=['atom', 'residue', 'timestamp'], 
-			  value_vars=['bader'])
-	coll_df = coll_df.rename({'value': 'charge', 'variable': 'Calculation Variant'},
-				 axis=1)
-	return coll_df
+   print('All collected. Transforming wide to long format ...')
+   # Transform the wide format into a long format version (for easier plotting)
+   coll_df = coll_df.rename({'q': 'bader'}, axis=1)
+   coll_df = pd.melt(coll_df, id_vars=['atom', 'residue', 'timestamp'], 
+           value_vars=['bader'])
+   coll_df = coll_df.rename({'value': 'charge', 'variable': 'Calculation Variant'},
+             axis=1)
+   return coll_df
 
 
 def collect_horton():
-	"""Find charges and put them in one dataframe."""
-	# Initialize collection data frame
-	coll_df = None
-	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk('./')):
+   """Find charges and put them in one dataframe."""
+   # Initialize collection data frame
+   coll_df = None
+   # Crawl the directory structure
+   for subdir, dirs, files in sorted(os.walk('./')):
 
-		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
-			continue
+      # Exclude template folders from search
+      if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
+         continue
 
-		# Select the folders with cost function
-		if 'horton_cost_function' in subdir:
-			print('Moving to {}'.format(subdir))
-			# Extract timestamp
-			time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
-			time = time.replace('/4_horton_cost_function', '')
-			time = int(time)
-		
-			# Use the first charge file to come across as a template	
-			df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
-			df['timestamp'] = time
+      # Select the folders with cost function
+      if 'horton_cost_function' in subdir:
+         print('Moving to {}'.format(subdir))
+         # Extract timestamp
+         time = os.path.split(subdir)[0].replace('./', '').replace('_ps_snapshot', '')
+         time = time.replace('/4_horton_cost_function', '')
+         time = int(time)
+      
+         # Use the first charge file to come across as a template   
+         df = pd.read_csv(os.path.join(subdir, 'fitted_point_charges.csv'))
+         df['timestamp'] = time
 
-			if coll_df is None:
-				coll_df = df
-			else:
-				coll_df = coll_df.append(df)
+         if coll_df is None:
+            coll_df = df
+         else:
+            coll_df = coll_df.append(df)
 
-	print('All collected. Transforming wide to long format ...')
-	# Transform the wide format into a long format version (for easier plotting)
-	coll_df = coll_df.rename({'q': 'constrained', 'q_unconstrained': 'unconstrained'}, axis=1)
-	coll_df = pd.melt(coll_df, id_vars=['atom', 'residue', 'timestamp'], 
-			  value_vars=['constrained', 'unconstrained'])
-	coll_df = coll_df.rename({'value': 'charge', 'variable': 'Calculation Variant'}, axis=1)
-	return coll_df
+   print('All collected. Transforming wide to long format ...')
+   # Transform the wide format into a long format version (for easier plotting)
+   coll_df = coll_df.rename({'q': 'constrained', 'q_unconstrained': 'unconstrained'}, axis=1)
+   coll_df = pd.melt(coll_df, id_vars=['atom', 'residue', 'timestamp'], 
+           value_vars=['constrained', 'unconstrained'])
+   coll_df = coll_df.rename({'value': 'charge', 'variable': 'Calculation Variant'}, axis=1)
+   return coll_df
 
 
 def extract_init_charges(rtp_path, df):
@@ -132,42 +132,44 @@ def extract_init_charges(rtp_path, df):
 
 
 def collect_average():
-	"""Put averaged charegs in a dataframe."""
-	# Read charges from averaged cost function
-	input_path = './horton_charges/fitted_point_charges.csv'
-	avg_df = pd.read_csv(input_path)
-	# Rename columns for consistency
-	avg_df = avg_df.rename({'q': 'averaged cost function'}, axis=1)
-	# Transform to long format
-	avg_df = pd.melt(avg_df, id_vars=['atom', 'residue'], value_vars=['averaged cost function'])
-	avg_df = avg_df.rename({'value': 'charge', 'variable': 'Calculation Variant'}, axis=1)
-	return avg_df
+   """Put averaged charegs in a dataframe."""
+   # Read charges from averaged cost function
+   input_path = './horton_charges/fitted_point_charges.csv'
+   avg_df = pd.read_csv(input_path)
+   # Rename columns for consistency
+   avg_df = avg_df.rename({'q': 'averaged cost function'}, axis=1)
+   # Transform to long format
+   avg_df = pd.melt(avg_df, id_vars=['atom', 'residue'], value_vars=['averaged cost function'])
+   avg_df = avg_df.rename({'value': 'charge', 'variable': 'Calculation Variant'}, axis=1)
+   return avg_df
 
 
 def main():
-	"""Collect charges and save them to .csv file"""
-	# Collect averaged charges
-	avg_df = collect_average()
+   """Collect charges and save them to .csv file"""
+   # Collect averaged charges
+   avg_df = collect_average()
+   print(avg_df.loc[avg_df.atom == 'NA2'])
 
-	# Collect all horton charges
-	print('Collecting HORTON charges ...')
-	horton_df = collect_horton()
+   # Collect all horton charges
+   print('Collecting HORTON charges ...')
+   horton_df = collect_horton()
+   print(horton_df.loc[horton_df.atom == 'NA2'])
 
-	# Collect all bader charges
-	print('Collecting Bader charges ...')
-	bader_df = collect_bader()
+   # Collect all bader charges
+   print('Collecting Bader charges ...')
+   bader_df = collect_bader()
 
-	# Paste everything into single dataframe
-	print('Combining different charges into one table ... ')
-	constr_df = horton_df.loc[horton_df['Calculation Variant'] == 'constrained']
-	unconstr_df = horton_df.loc[horton_df['Calculation Variant'] == 'unconstrained']
-	collect_df = avg_df
-	collect_df = collect_df.append(constr_df, sort=False) 
-	collect_df = collect_df.append(unconstr_df, sort=False) 
-	collect_df = collect_df.append(bader_df, sort=False)
+   # Paste everything into single dataframe
+   print('Combining different charges into one table ... ')
+   constr_df = horton_df.loc[horton_df['Calculation Variant'] == 'constrained']
+   unconstr_df = horton_df.loc[horton_df['Calculation Variant'] == 'unconstrained']
+   collect_df = avg_df
+   collect_df = collect_df.append(constr_df, sort=False) 
+   collect_df = collect_df.append(unconstr_df, sort=False) 
+   collect_df = collect_df.append(bader_df, sort=False)
 
-	create_dir(path='./plotting')
-	collect_df.to_csv('./plotting/all_charges.csv')
+   create_dir(path='./plotting')
+   collect_df.to_csv('./plotting/all_charges.csv')
 
 if __name__ == '__main__':
-	main()
+   main()
