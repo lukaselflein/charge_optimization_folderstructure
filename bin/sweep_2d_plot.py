@@ -49,6 +49,12 @@ def collect_snapshots(plot_range=[-9, -5]):
 
 
 def collect_avg():
+   ###########################################################ü
+   # ERROR!!!!
+   # We do not search for averaged cost functions here, I'm not sure what's actually happening.
+   # The calculated values are different from the individual snapshots.
+   ###############################################################üüüüüüüü
+
    collect_df = pd.DataFrame()
    cost_paths = find(path='.', folder_keyword='horton_charges/sweep_rhoref',
            file_keyword='charges',
@@ -57,9 +63,9 @@ def collect_avg():
    for charge_file in cost_paths:
       # Parse parameters from filename
       lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
-
       sarah_wish_sigma = ['0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4']
       if sigma in sarah_wish_sigma:
+
          # Read file
          df = pd.read_csv(charge_file)
 

@@ -11,78 +11,77 @@ from smamp.tools import cd
 from smamp.tools import check_existence
 
 def calc_cost_function(path, lnrho=-5, sigma=0.8, output_file="cost.h5"):
-	""" Call the horton script."""
-	command = "horton-esp-cost.py"
-	esp_file = " ../3_united_atom_structure/esp_ua.cube"
-	output_file = ' ' + output_file
-	density_file = " --wdens ../3_united_atom_structure/rho_ua.cube"
-	density_file += ":{}:{}".format(lnrho, sigma)
-	boundary_option = " --pbc 000 "
-	sign_option = "--sign "  # changes sign
-	overwrite = "--overwrite "
+   """ Call the horton script."""
+   command = "horton-esp-cost.py"
+   esp_file = " ../3_united_atom_structure/esp_ua.cube"
+   output_file = ' ' + output_file
+   density_file = " --wdens ../3_united_atom_structure/rho_ua.cube"
+   density_file += ":{}:{}".format(lnrho, sigma)
+   boundary_option = " --pbc 000 "
+   sign_option = "--sign "  # changes sign
+   overwrite = "--overwrite "
 
-	# Build the command
-	command += esp_file + output_file + density_file 
-	command += boundary_option + sign_option + overwrite
+   # Build the command
+   command += esp_file + output_file + density_file 
+   command += boundary_option + sign_option + overwrite
+   print(command)
 
-	# Execute the command
-	# print("Executing: \n{}".format(command))
-	# print("In: {}".format(os.getcwd()))
+   # Execute the command
+   # print("Executing: \n{}".format(command))
+   # print("In: {}".format(os.getcwd()))
 
-	# output = subprocess.check_output(command, shell=True)
-	with open('horton_stout.log', 'w') as logfile:
-		kwargs = {"shell": True, "stdout": logfile, "stderr": subprocess.STDOUT}
-		subprocess.Popen(command, **kwargs).communicate()
-	# print('Calculation started, horton returned {}'.format(output.decode('ascii')))
+   # output = subprocess.check_output(command, shell=True)
+   with open('horton_stout.log', 'w') as logfile:
+      kwargs = {"shell": True, "stdout": logfile, "stderr": subprocess.STDOUT}
+      subprocess.Popen(command, **kwargs).communicate()
+   # print('Calculation started, horton returned {}'.format(output.decode('ascii')))
 
 def cmd_parser():
-	parser = argparse.ArgumentParser(prog='',
-					 description='Discover input files and calc cost functions.')
-	
-	parser.add_argument('--lnrho', metavar=-5,
+   parser = argparse.ArgumentParser(prog='',
+                description='Discover input files and calc cost functions.')
+   
+   parser.add_argument('--lnrho', metavar=-5,
         help='Value of the lnrho reference parameter for HORTON cost function construction.',
-	default=-5)
+   default=-5)
 
-	args = parser.parse_args()
+   args = parser.parse_args()
 
-	return args.lnrho
+   return args.lnrho
 
 
 def main():
-	""" Execute everything."""
-	print('This is {}.'.format(__file__))
-	print('Current working dir: {}'.format(os.getcwd()))
+   """ Execute everything."""
+   print('This is {}.'.format(__file__))
+   print('Current working dir: {}'.format(os.getcwd()))
 
-	lnrho =  cmd_parser()
+   # Crawl the directory structure
+   for subdir, dirs, files in sorted(os.walk('.')):
 
-	# Crawl the directory structure
-	for subdir, dirs, files in sorted(os.walk('.')):
+      # Exclude template folders from search
+      if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
+         continue
 
-		# Exclude template folders from search
-		if 'template' in subdir or 'exclude' in subdir or 'sweep' in subdir:
-			continue
+      # Select the folder to calculate in
+      if 'horton_cost_function' in subdir:
+         print('Moving to {}'.format(subdir))
 
-		# Select the folder to calculate in
-		if 'horton_cost_function' in subdir:
-			print('Moving to {}'.format(subdir))
+         # Check if all neccessary files exist
+         neccessary_files = ['../3_united_atom_structure/esp_ua.cube']
+         neccessary_files += ['../3_united_atom_structure/rho_ua.cube']
+         warning = check_existence(path=subdir, neccessary_files=neccessary_files)
+   
+         # If they don't exist, log this and move on
+         if warning:
+            with open('submissions.log', 'a') as logfile:
+               logfile.write(warning + '\n')
+            continue
 
-			# Check if all neccessary files exist
-			neccessary_files = ['../3_united_atom_structure/esp_ua.cube']
-			neccessary_files += ['../3_united_atom_structure/rho_ua.cube']
-			warning = check_existence(path=subdir, neccessary_files=neccessary_files)
-	
-			# If they don't exist, log this and move on
-			if warning:
-				with open('submissions.log', 'a') as logfile:
-					logfile.write(warning + '\n')
-				continue
-
-			# Start the calculation only if all files exist
-			elif warning is None:
-				# print('Calculating: {}'.format(subdir))
-				with cd(subdir):
-					calc_cost_function(subdir, lnrho=lnrho)
-	print('Done.')
+         # Start the calculation only if all files exist
+         elif warning is None:
+            # print('Calculating: {}'.format(subdir))
+            with cd(subdir):
+               calc_cost_function(subdir)
+   print('Done.')
 
 if __name__ == '__main__':
-	main()
+   main()
