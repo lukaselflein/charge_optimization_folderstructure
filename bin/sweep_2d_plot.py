@@ -94,7 +94,8 @@ def plot_heatmap(df, outname):
 def plot_1d(df, outname):
    fig = plt.figure(figsize=(16,10))
    sns.set_context("talk", font_scale=0.9)
-   pp = sns.pointplot(data=df, x='lnrhoref', y='value', hue='sigma')
+#   pp = sns.pointplot(data=df, x='lnrhoref', y='value', hue='sigma')
+   pp = sns.pointplot(data=df, x='sigma', y='value', hue='lnrhoref')
    pp.set_title('RRMSD between constrained and unconstrained charges [e].')
    pp.figure.savefig(outname)
 
