@@ -49,12 +49,6 @@ def collect_snapshots(plot_range=[-9, -5]):
 
 
 def collect_avg():
-   ###########################################################ü
-   # ERROR!!!!
-   # We do not search for averaged cost functions here, I'm not sure what's actually happening.
-   # The calculated values are different from the individual snapshots.
-   ###############################################################üüüüüüüü
-
    collect_df = pd.DataFrame()
    cost_paths = find(path='.', folder_keyword='horton_charges/sweep_rhoref',
            file_keyword='charges',
@@ -97,6 +91,13 @@ def plot_heatmap(df, outname):
    pp.set_title('RRMSD between constrained and unconstrained charges [e].')
    pp.figure.savefig(outname)
 
+def plot_1d(df, outname):
+   fig = plt.figure(figsize=(16,10))
+   sns.set_context("talk", font_scale=0.9)
+   pp = sns.pointplot(data=df, x='lnrhoref', y='value', hue='sigma')
+   pp.set_title('RRMSD between constrained and unconstrained charges [e].')
+   pp.figure.savefig(outname)
+
 def main():
    """Execute everything. """
    print('This is {}.'.format(__file__))
@@ -104,6 +105,10 @@ def main():
 
    print('Collecting averages')
    df = collect_avg()
+   mean_df = df.groupby(['lnrhoref', 'sigma']).mean().apply(np.sqrt)
+   mean_df = mean_df.reset_index()
+   plot_1d(mean_df, 'plotting/lnrho_vs_diff.png') 
+   print(df); exit()
    df = molten_to_2d(df)
    plot_heatmap(df, outname='plotting/avg_heatmap.png')
 
