@@ -69,11 +69,13 @@ def collect_snapshots():
    for charge_file in cost_paths:
       # Parse parameters from filename
       lnrho, sigma = charge_file[-15:-4].split('_')[-2:]
-      if sigma == '0.8':
+      #if sigma == '0.8':
+      if sigma in ['0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4']:
          df = pd.read_csv(charge_file)
 
          # Paste the lnrho parameter into the dataframe
          df['lnrho'] = lnrho
+         df['sigma'] = sigma
 
          # Also note the snapshot identifier
          timestamp = re.findall(r'\d+', charge_file)[0]
@@ -81,20 +83,33 @@ def collect_snapshots():
 
          collect_df = collect_df.append(df)
 
-   collect_df = pd.melt(collect_df, id_vars=['atom', 'residue', 'lnrho', 'snapshot'], 
-              value_vars=['q'])
+   collect_df = pd.melt(collect_df, 
+                        id_vars=['atom', 'residue', 'lnrho', 'sigma', 'snapshot'],
+                        value_vars=['q'])
    return collect_df
 
 
 @default_style
 def plot_snapshots(df):
-   pp = sns.pointplot('value', 'atom', data=df, scale=1.0, 
-              join=False, hue='lnrho', ci='sd', dodge=0.1, 
-             palette=sns.color_palette("coolwarm", 10))
 
+   df_5 = df.loc[df.lnrho == '-5']
+#   df_5['sigma'] = pd.to_numeric(df_5['sigma'])
+   pp = sns.pointplot('value', 'atom', data=df_5, scale=1.0, 
+                      join=False, hue='sigma', ci='sd', dodge=0.1, 
+                      palette=sns.color_palette("coolwarm", len(df.sigma.unique())))
    pp.set_title('Individual snapshot charges of all residues')
    pp.axes.grid(True)  # Show horizontal gridlines
-   pp.figure.savefig('plotting/snapshots_pointplot.png')
+   pp.figure.savefig('plotting/snapshots_pointplot_sigma.png')
+
+   plt.clf()
+   df_08 = df.loc[df.sigma == 0.8]
+   df_08['lnrho'] = pd.to_numeric(df_08['lnrho'])
+   pp = sns.pointplot('value', 'atom', data=df_5, scale=1.0, 
+                      join=False, hue='lnrho', ci='sd', dodge=0.1, 
+                      palette=sns.color_palette("coolwarm", len(df.lnrho.unique())))
+   pp.set_title('Individual snapshot charges of all residues')
+   pp.axes.grid(True)  # Show horizontal gridlines
+   pp.figure.savefig('plotting/snapshots_pointplot_lnrho.png')
 
 
 @default_style
@@ -121,24 +136,28 @@ def swarmplot(df):
    sp.figure.savefig('plotting/swarmplot.png')
 
 def plot_variance(df):
-   dispersions = []
-   lnrhos = []
-   for lnrho in df.lnrho.unique():
-      lnrhos += [int(lnrho)]
-      dispersion = 0
-      rho_df = df.loc[df['lnrho'] == lnrho]
-      for residue in df.residue.unique():
-         res_df = rho_df.loc[rho_df['residue'] == residue]
-         for atom in res_df.atom.unique():
-            atom_df = res_df.loc[res_df['atom'] == atom]
-            dispersion += abs(atom_df.value.max() - atom_df.value.min())
-      dispersions += [dispersion]
-
-   x, y = zip(*sorted(zip(lnrhos, dispersions)))
-
+   save_df = df
    fig = plt.figure(figsize=(16,10))
    sns.set_context("talk", font_scale=0.9)
-   plt.plot(x, y, marker='o')
+   for sigma in ['0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4']:
+      df = save_df.loc[save_df.sigma == sigma]
+      dispersions = []
+      lnrhos = []
+      for lnrho in df.lnrho.unique():
+         lnrhos += [int(lnrho)]
+         dispersion = 0
+         rho_df = df.loc[df['lnrho'] == lnrho]
+         for residue in df.residue.unique():
+            res_df = rho_df.loc[rho_df['residue'] == residue]
+            for atom in res_df.atom.unique():
+               atom_df = res_df.loc[res_df['atom'] == atom]
+               dispersion += abs(atom_df.value.max() - atom_df.value.min())
+         dispersions += [dispersion]
+
+      x, y = zip(*sorted(zip(lnrhos, dispersions)))
+
+      plt.plot(x, y, marker='o', label='sigma = {}'.format(sigma))
+   plt.legend()
    plt.xlabel('rhoref')
    plt.ylabel('cumlatative dispersion of charge [e]')
    plt.savefig('plotting/dispersion.png')
@@ -150,17 +169,19 @@ def main():
 
    # Averages
    print('Collecting averages ...')
-   average_df = collect_averages()
+   #average_df = collect_averages()
    print('Plotting averages ...')
-   plot_averages(average_df)
+   #plot_averages(average_df)
 
    # Individual snapshots
    print('Collecting snapshots ...')
    snapshot_df = collect_snapshots()
-   plot_variance(snapshot_df)
    print('Plotting snapshots ...')
    plot_snapshots(snapshot_df)
-   swarmplot(snapshot_df)
+   print('Plotting variance ...')
+   plot_variance(snapshot_df)
+#   print('Plotting swarmplot ...')
+#   swarmplot(snapshot_df)
    # plot_joint(average_df, snapshot_df)
 
    print('Done.')
