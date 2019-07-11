@@ -108,7 +108,6 @@ def main():
    mean_df = df.groupby(['lnrhoref', 'sigma']).mean().apply(np.sqrt)
    mean_df = mean_df.reset_index()
    plot_1d(mean_df, 'plotting/lnrho_vs_diff_sigma_hue.png') 
-   print(df); exit()
    df = molten_to_2d(df)
    plot_heatmap(df, outname='plotting/avg_heatmap.png')
 
