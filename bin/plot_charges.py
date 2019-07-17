@@ -59,6 +59,7 @@ def boxplot(df, out_path):
    pp = sns.pointplot('charge', 'atom', data=point_df, scale=0.5, 
               join=False, markers=['D'], ci=0.1, ax=ax, hue='Calculation Variant')
    bp.set_title('Distribution of charges with different calculation methods')
+   plt.gca().invert_yaxis()
    bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
 
 @default_style
@@ -69,7 +70,8 @@ def pointplot(df, out_path, variant='constrained'):
               join=False, hue='timestamp', ci='sd', dodge=0.1)
 
    pp.set_title('{} charges of all residues'.format(variant).capitalize())
-   pp.axes.grid(True)  # Show horizontal gridlines
+   #pp.axes.grid(True)  # Show horizontal gridlines
+   plt.gca().invert_yaxis()
    pp.figure.savefig(os.path.join(out_path, 'pointplot_{}.png'.format(variant)))
 
 @default_style
@@ -79,7 +81,8 @@ def swarmplot(df, out_path, variant='constrained'):
    sp = sns.swarmplot('charge', 'atom', data=c_df, hue='timestamp')
 
    sp.set_title('{} charges of all residues'.format(variant).capitalize())
-   sp.axes.grid(True)  # Show horizontal gridlines
+#   sp.axes.grid(True)  # Show horizontal gridlines
+   plt.gca().invert_yaxis()
    sp.figure.savefig(os.path.join(out_path, 'swarmplot_{}.png'.format(variant)))
 
 @default_style
@@ -91,7 +94,8 @@ def average_pointplot(df, out_path):
                       markers=markers)
 
    pp.set_title('Averages of charges with different calculation methods')
-   pp.axes.grid(True)  # Show horizontal gridlines
+   #pp.axes.grid(True)  # Show horizontal gridlines
+   plt.gca().invert_yaxis()
    pp.figure.savefig(os.path.join(out_path, 'averages.png'))
 
 @default_style
@@ -105,6 +109,7 @@ def box_and_swarm(df, out_path, variant):
 
 #   ax.grid(True)  # Show horizontal gridlines
    make_edgecolor(ax, color='black')
+   plt.gca().invert_yaxis()
    bp.figure.savefig(os.path.join(out_path, 'combined_box_swarm_{}.png'.format(variant)))
 
 def main():
