@@ -20,7 +20,7 @@ def default_style(func):
    def wrapper(*args, **kwargs):
       fig = plt.figure(figsize=(16,10))
       sns.set_context("talk", font_scale=0.9)
-      plt.xlim(-2, 2)
+      plt.xlim(-3, 3)
       plt.tick_params(grid_alpha=0.2)
       func(*args, **kwargs)
       plt.clf()
@@ -102,6 +102,7 @@ def plot_snapshots(df):
    pp.figure.savefig('plotting/snapshots_pointplot_sigma.png')
 
    plt.clf()
+   plt.xlim(-2, 2)
    df_08 = df.loc[df.sigma == 0.8]
    df_08['lnrho'] = pd.to_numeric(df_08['lnrho'])
    pp = sns.pointplot('value', 'atom', data=df_5, scale=1.0, 

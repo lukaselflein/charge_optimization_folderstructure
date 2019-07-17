@@ -15,8 +15,9 @@ import seaborn as sns
 def default_style(func):
    """A decorator for setting global plotting styling options."""
    def wrapper(*args, **kwargs):
-      fig = plt.figure(figsize=(16,10))
+      fig = plt.figure(figsize=(18,18))
       sns.set_context("talk", font_scale=0.9)
+      plt.xlim(-3, 3)
 #      plt.xlim(-5, 2)
       plt.tick_params(grid_alpha=0.2)
       func(*args, **kwargs)
@@ -46,13 +47,17 @@ def make_edgecolor(ax, color=None):
 @default_style
 def boxplot(df, out_path):
    """ Plot charges calculated under different conditions in one boxplot."""
-   # sns.set_palette(sns.color_palette("Set1", n_colors=4, desat=.9))
-   print('this is boxplot')
-   bp = sns.boxplot(x='charge', y='atom', hue='Calculation Variant', data=df, whis=100)
+
+   point_df = df.loc[df['Calculation Variant'] == 'averaged cost function']
+   df = df.loc[df['Calculation Variant'] != 'averaged cost function']
+   bp = sns.boxplot(x='charge', y='atom', hue='Calculation Variant', data=df, whis=100,
+                    palette=sns.color_palette()[1:])
 
    ax = bp.axes
-   ax.grid(True)  # Show horizontal gridlines
+#   ax.grid(True)  # Show horizontal gridlines
    make_edgecolor(ax)
+   pp = sns.pointplot('charge', 'atom', data=point_df, scale=0.5, 
+              join=False, markers=['D'], ci=0.1, ax=ax, hue='Calculation Variant')
    bp.set_title('Distribution of charges with different calculation methods')
    bp.figure.savefig(os.path.join(out_path, 'boxplot.png'))
 
@@ -80,8 +85,10 @@ def swarmplot(df, out_path, variant='constrained'):
 @default_style
 def average_pointplot(df, out_path):
    """Pointplot of averages to compare different calculation methods"""
+   markers = ['D', 'o', 'o', 'o']
    pp = sns.pointplot('charge', 'atom', data=df, scale=1.0, 
-                      join=False, hue='Calculation Variant', ci=None, dodge=0.2)
+                      join=False, hue='Calculation Variant', ci=None, dodge=0.2,
+                      markers=markers)
 
    pp.set_title('Averages of charges with different calculation methods')
    pp.axes.grid(True)  # Show horizontal gridlines
@@ -96,7 +103,7 @@ def box_and_swarm(df, out_path, variant):
    ax = sp.axes
    bp = sns.boxplot(x='charge', y='atom', hue='Calculation Variant', data=c_df, whis=100, ax=ax)
 
-   ax.grid(True)  # Show horizontal gridlines
+#   ax.grid(True)  # Show horizontal gridlines
    make_edgecolor(ax, color='black')
    bp.figure.savefig(os.path.join(out_path, 'combined_box_swarm_{}.png'.format(variant)))
 
