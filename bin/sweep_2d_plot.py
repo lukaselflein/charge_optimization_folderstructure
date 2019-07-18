@@ -32,7 +32,7 @@ def collect_snapshots(plot_range=[-9, -5]):
          df = pd.read_csv(charge_file)
 
          # Paste the lnrho parameter into the dataframe
-         df['lnrhoref'] = int(lnrho)
+         df['lnrhoref'] = float(lnrho)
          df['sigma'] = float(sigma)
 
          # Also note the snapshot identifier
@@ -64,7 +64,7 @@ def collect_avg():
          df = pd.read_csv(charge_file)
 
          # Paste the lnrho parameter into the dataframe
-         df['lnrhoref'] = int(lnrho)
+         df['lnrhoref'] = float(lnrho)
          df['sigma'] = float(sigma)
 
          # Also note the snapshot identifier

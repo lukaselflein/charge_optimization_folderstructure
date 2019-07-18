@@ -76,6 +76,10 @@ def main():
                logfile.write(warning + '\n')
             continue
 
+         if os.path.exists(os.path.join(subdir, 'cost.h5')):
+            print('File exists, skipping.')
+            continue
+
          # Start the calculation only if all files exist
          elif warning is None:
             # print('Calculating: {}'.format(subdir))

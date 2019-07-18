@@ -13,49 +13,53 @@ from smamp.tools import cd
 from smamp.tools import find
 
 def main():
-	""" Execute everything."""
-	print('This is {}.'.format(__file__))
+   """ Execute everything."""
+   print('This is {}.'.format(__file__))
 
-	rho_paths = find(path='./', folder_keyword='dft', file_keyword='rho')
+   rho_paths = find(path='./', folder_keyword='dft', file_keyword='rho')
 
-	for path in rho_paths:
-		# Get the exact density file name
-		folder_path, file_name = os.path.split(path)
-		
-		# Go to the bader directory to place the bader analysis output there	
-		topdir = os.path.split(folder_path)[0]
-		bader_dir = os.path.join(topdir, '5_bader_charges')
-		with cd(bader_dir):
-			print('Moving to {}'.format(bader_dir))
+   for path in rho_paths:
+      # Get the exact density file name
+      folder_path, file_name = os.path.split(path)
+      
+      # Go to the bader directory to place the bader analysis output there   
+      topdir = os.path.split(folder_path)[0]
+      bader_dir = os.path.join(topdir, '5_bader_charges')
+      with cd(bader_dir):
+         print('Moving to {}'.format(bader_dir))
 
-			# Find structure and topology files of the same snapshot
-			snapshot_path = find(path='..', folder_keyword='initial', 
-					     file_keyword='.pdb')[0]
-			top_path = find(path='..', folder_keyword='initial', 
-					file_keyword='.top')[0]
+         # Find structure and topology files of the same snapshot
+         snapshot_path = find(path='..', folder_keyword='initial', 
+                    file_keyword='.pdb')[0]
+         top_path = find(path='..', folder_keyword='initial', 
+               file_keyword='.top')[0]
 
-			# Write output to logfile	
-			with open('bader.log', 'w') as logfile:
-				# Assemble the shell command bader
-				command = 'bader -p atom_index '
-				command += os.path.join('../2_dft_calculations/', 
-							file_name)
-				kwargs = {"shell": True, "stdout": logfile, 
-					  "stderr": subprocess.STDOUT}
-				# Execute the shell command
-				print('Running bader ...')
-				p = subprocess.Popen(command, **kwargs)
+         if os.path.exists('bader_charges.csv'):
+            print('File exists, skipping.')
+            continue
 
-				# Wait for the shell command to finish
-				p.communicate()
+         # Write output to logfile   
+         with open('bader.log', 'w') as logfile:
+            # Assemble the shell command bader
+            command = 'bader -p atom_index '
+            command += os.path.join('../2_dft_calculations/', 
+                     file_name)
+            kwargs = {"shell": True, "stdout": logfile, 
+                 "stderr": subprocess.STDOUT}
+            # Execute the shell command
+            print('Running bader ...')
+            p = subprocess.Popen(command, **kwargs)
 
-				# Extract charges from the bader anaylsis output to .csv
-				print('Bader done. Extracting bader charges ...')
-				smamp.extract_bader_charges.extract(snapshot_path,
-								    top_path)
-				print('Extraction done.')
+            # Wait for the shell command to finish
+            p.communicate()
 
-	print('Done.')
+            # Extract charges from the bader anaylsis output to .csv
+            print('Bader done. Extracting bader charges ...')
+            smamp.extract_bader_charges.extract(snapshot_path,
+                            top_path)
+            print('Extraction done.')
+
+   print('Done.')
 
 if __name__ == '__main__':
-	main()
+   main()
