@@ -42,7 +42,7 @@ def collect_averages():
                  file_keyword='charges_{}_{}.csv'.format(lnrho, sigma), 
                  nr_occ=1)[0]
          df = pd.read_csv(charge_file)
-         df['lnrho'] = int(lnrho)
+         df['lnrho'] = float(lnrho)
          collect_df = collect_df.append(df)
 
    collect_df = pd.melt(collect_df, id_vars=['atom', 'residue', 'lnrho'], value_vars=['q'])
@@ -145,7 +145,7 @@ def plot_variance(df):
       dispersions = []
       lnrhos = []
       for lnrho in df.lnrho.unique():
-         lnrhos += [int(lnrho)]
+         lnrhos += [float(lnrho)]
          dispersion = 0
          rho_df = df.loc[df['lnrho'] == lnrho]
          for residue in df.residue.unique():
