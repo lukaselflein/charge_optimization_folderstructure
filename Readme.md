@@ -122,10 +122,23 @@ Plots are automatically generated in `images`.
 ### Unconverged Snapshots
 Snapshots failing to converge in the DFT calculation step can be excluded by deleting their folders, or renaming their folders '...exclude...', e.g., `300_ps_snapshot_exclude`.
 
+### Additional Features
+Two prototypical features are grafted onto the automation framework, parameter sweeps and ESP differences.
+
+#### Parameter Sweeps
+To automatically calculate cost functions and fitted charges for large volumes in parameter space, several `sweep_x.py` scripts exist. The usual workflow is outlined in `sweep.sh`, which should be executed after running the `postprocessing.sh` workflow.
+Documentation and testing is bare-bones, scripts are fragile!
+
+#### ESP quality
+This experimental feature is located at https://github.com/lukaselflein/potential_error. It uses the output of the parameter sweep to compare the point-charge electrostatic potential to the DFT potential. 
+
 ### Content
 * `Readme.md`: The Readme you are reading right now.
-* `bin`: Bash and python scripts for fitting, conversion, extracting, and visualization.
 * `preprocessing.sh`: BASH Commands for preprocessing the input up to and including the DFT calculations.
 * `postprocessing.sh`: BASH commands to extract densities, calculate and visualize charges.
+* `sweep.sh`: BASH commands to run a sweep over the lnrhoref and sigma parameters.
 * `.pictures`: Pictures for the Readme.
 * `.simulation_template`: The full template simulation folder structure.
+* `bin/`: Bash and python scripts for fitting, conversion, extracting, and visualization.
+* `doc/`: Documentation files.
+* `fitting_constraint_files/`: Folder for csv tables describing the optimization constraints.
